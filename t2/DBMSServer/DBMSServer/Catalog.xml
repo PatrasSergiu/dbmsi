@@ -1,0 +1,21 @@
+<Databases>
+  <DataBase dbName="students">
+    <Tables>
+      <Table tableName="disciplines" fileName="disciplines.kv">
+        <IndexFiles>
+          <IndexFile fileName="disciplines.ind" isUnique="1">
+            <IndexAttributes>DiscID<IAttribute /></IndexAttributes>
+          </IndexFile>
+        </IndexFiles>
+        <Structure>
+          <Attribute attributeName="DiscID" attributeType="string" isUnique="1" />
+          <Attribute attributeName="DName" attributeType="string" isUnique="0" />
+          <Attribute attributeName="CreditNr" attributeType="int" isUnique="0" />
+        </Structure>
+        <primaryKey>
+          <pkAttribute>DiscID</pkAttribute>
+        </primaryKey>
+      </Table>
+    </Tables>
+  </DataBase>
+</Databases>

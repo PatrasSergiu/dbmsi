@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "7h2wpcJApoMmGlPR0nl3HpIn7Don+MaPvxJYKoDXflxscKR0TrhtvTNH3B1S1FAhMVlYrx9cM/SJ6k0U8MlvHw==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\patra\\Documents\\GitHub\\dbmsi\\t2\\DBMSServer\\DBMSServer\\DBMSServer.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\patra\\.nuget\\packages\\newtonsoft.json\\13.0.1\\newtonsoft.json.13.0.1.nupkg.sha512"
+  ],
+  "logs": []
+}

@@ -1,0 +1,17 @@
+C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSServer\DBMSServer\bin\Debug\net6.0\DBMSServer.exe
+C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSServer\DBMSServer\bin\Debug\net6.0\DBMSServer.deps.json
+C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSServer\DBMSServer\bin\Debug\net6.0\DBMSServer.runtimeconfig.json
+C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSServer\DBMSServer\bin\Debug\net6.0\DBMSServer.dll
+C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSServer\DBMSServer\bin\Debug\net6.0\DBMSServer.pdb
+C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSServer\DBMSServer\bin\Debug\net6.0\Newtonsoft.Json.dll
+C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSServer\DBMSServer\obj\Debug\net6.0\DBMSServer.csproj.AssemblyReference.cache
+C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSServer\DBMSServer\obj\Debug\net6.0\DBMSServer.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSServer\DBMSServer\obj\Debug\net6.0\DBMSServer.AssemblyInfoInputs.cache
+C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSServer\DBMSServer\obj\Debug\net6.0\DBMSServer.AssemblyInfo.cs
+C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSServer\DBMSServer\obj\Debug\net6.0\DBMSServer.csproj.CoreCompileInputs.cache
+C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSServer\DBMSServer\obj\Debug\net6.0\DBMSServer.csproj.CopyComplete
+C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSServer\DBMSServer\obj\Debug\net6.0\DBMSServer.dll
+C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSServer\DBMSServer\obj\Debug\net6.0\refint\DBMSServer.dll
+C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSServer\DBMSServer\obj\Debug\net6.0\DBMSServer.pdb
+C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSServer\DBMSServer\obj\Debug\net6.0\DBMSServer.genruntimeconfig.cache
+C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSServer\DBMSServer\obj\Debug\net6.0\ref\DBMSServer.dll

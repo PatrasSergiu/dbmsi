@@ -33,19 +33,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\danid\\.nuget\\packages\\": {}
+    "C:\\Users\\patra\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\danid\\source\\repos\\DBMS\\DBMS\\DBMS.csproj",
+      "projectUniqueName": "C:\\Users\\patra\\Documents\\GitHub\\dbmsi\\DBMS\\DBMS.csproj",
       "projectName": "DBMS",
-      "projectPath": "C:\\Users\\danid\\source\\repos\\DBMS\\DBMS\\DBMS.csproj",
-      "packagesPath": "C:\\Users\\danid\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\danid\\source\\repos\\DBMS\\DBMS\\obj\\",
+      "projectPath": "C:\\Users\\patra\\Documents\\GitHub\\dbmsi\\DBMS\\DBMS.csproj",
+      "packagesPath": "C:\\Users\\patra\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\patra\\Documents\\GitHub\\dbmsi\\DBMS\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\danid\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\patra\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -82,7 +82,8 @@
           "net47",
           "net471",
           "net472",
-          "net48"
+          "net48",
+          "net481"
         ],
         "assetTargetFallback": true,
         "warn": true,
@@ -94,7 +95,7 @@
             "privateAssets": "none"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.407\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.402\\RuntimeIdentifierGraph.json"
       }
     }
   },
@@ -103,7 +104,7 @@
       "code": "NU1701",
       "level": "Warning",
       "warningLevel": 1,
-      "message": "Package 'SimpleTCP 1.0.24' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8' instead of the project target framework '.NETCoreApp,Version=v3.1'. This package may not be fully compatible with your project.",
+      "message": "Package 'SimpleTCP 1.0.24' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework '.NETCoreApp,Version=v3.1'. This package may not be fully compatible with your project.",
       "libraryId": "SimpleTCP",
       "targetGraphs": [
         ".NETCoreApp,Version=v3.1"

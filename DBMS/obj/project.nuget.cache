@@ -1,17 +1,17 @@
 {
   "version": 2,
-  "dgSpecHash": "RYhfVsQNBAXL658kyY99RkkmxXVa3ty3eVcGxycb7v5tbbvWNWULycMkjsJmOx5ecAThBFq4JyEbsOxx7fDhug==",
+  "dgSpecHash": "r/ahU8Wkvi2r5Y8IYunA5cVk8jL0FNuf5MldfhJlzPUhJb09BsQHbsfNe4aug43Fu3emICCMBEpR2rXYmCMdKg==",
   "success": true,
-  "projectFilePath": "C:\\Users\\danid\\source\\repos\\DBMS\\DBMS\\DBMS.csproj",
+  "projectFilePath": "C:\\Users\\patra\\Documents\\GitHub\\dbmsi\\DBMS\\DBMS.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\danid\\.nuget\\packages\\simpletcp\\1.0.24\\simpletcp.1.0.24.nupkg.sha512"
+    "C:\\Users\\patra\\.nuget\\packages\\simpletcp\\1.0.24\\simpletcp.1.0.24.nupkg.sha512"
   ],
   "logs": [
     {
       "code": "NU1701",
       "level": "Warning",
       "warningLevel": 1,
-      "message": "Package 'SimpleTCP 1.0.24' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8' instead of the project target framework '.NETCoreApp,Version=v3.1'. This package may not be fully compatible with your project.",
+      "message": "Package 'SimpleTCP 1.0.24' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework '.NETCoreApp,Version=v3.1'. This package may not be fully compatible with your project.",
       "libraryId": "SimpleTCP",
       "targetGraphs": [
         ".NETCoreApp,Version=v3.1"

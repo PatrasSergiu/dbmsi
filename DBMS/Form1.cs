@@ -26,6 +26,12 @@ namespace DBMS
             server.Delimiter = 0x13;
             server.StringEncoder = Encoding.UTF8;
             server.DataReceived += Server_DataRecieved;
+            server.ClientConnected += Server_ClientConnected;
+        }
+
+        private void Server_ClientConnected(object sender, System.Net.Sockets.TcpClient e)
+        {
+            txtStatus.Text = "Client conectat";
         }
 
         private void Server_DataRecieved(object sender, SimpleTCP.Message e)

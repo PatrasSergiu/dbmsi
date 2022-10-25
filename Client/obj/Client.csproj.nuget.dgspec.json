@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\danid\\source\\repos\\DBMS\\Client\\Client.csproj": {}
+    "C:\\Users\\patra\\Documents\\GitHub\\dbmsi\\Client\\Client.csproj": {}
   },
   "projects": {
-    "C:\\Users\\danid\\source\\repos\\DBMS\\Client\\Client.csproj": {
+    "C:\\Users\\patra\\Documents\\GitHub\\dbmsi\\Client\\Client.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\danid\\source\\repos\\DBMS\\Client\\Client.csproj",
+        "projectUniqueName": "C:\\Users\\patra\\Documents\\GitHub\\dbmsi\\Client\\Client.csproj",
         "projectName": "Client",
-        "projectPath": "C:\\Users\\danid\\source\\repos\\DBMS\\Client\\Client.csproj",
-        "packagesPath": "C:\\Users\\danid\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\danid\\source\\repos\\DBMS\\Client\\obj\\",
+        "projectPath": "C:\\Users\\patra\\Documents\\GitHub\\dbmsi\\Client\\Client.csproj",
+        "packagesPath": "C:\\Users\\patra\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\patra\\Documents\\GitHub\\dbmsi\\Client\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\danid\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\patra\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -51,7 +51,8 @@
             "net47",
             "net471",
             "net472",
-            "net48"
+            "net48",
+            "net481"
           ],
           "assetTargetFallback": true,
           "warn": true,
@@ -63,7 +64,7 @@
               "privateAssets": "none"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.407\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.402\\RuntimeIdentifierGraph.json"
         }
       }
     }
