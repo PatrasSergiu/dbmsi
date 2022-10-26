@@ -86,6 +86,35 @@ namespace DBMSClient
 
             return messageBytes; // Return response  
         }
+        private static byte[] getTables(byte[] messageBytes)
+        {
+            const int bytesize = 1024 * 1024;
+            try // Try connecting and send the message bytes  
+            {
+                System.Net.Sockets.TcpClient client = new System.Net.Sockets.TcpClient("127.0.0.1", 1234); // Create a new connection  
+                NetworkStream stream = client.GetStream();
+
+                stream.Write(messageBytes, 0, messageBytes.Length); // Write the bytes  
+                Console.WriteLine("================================");
+                Console.WriteLine("=   Connected to the server    =");
+                Console.WriteLine("================================");
+                Console.WriteLine("Waiting for response...");
+
+                messageBytes = new byte[bytesize]; // Clear the message   
+                stream.Read(messageBytes, 0, messageBytes.Length);
+                // Receive the stream of bytes  
+
+                // Clean up  
+                stream.Dispose();
+                client.Close();
+            }
+            catch (Exception e) // Catch exceptions  
+            {
+                Console.WriteLine(e.Message);
+            }
+
+            return messageBytes; // Return response  
+        }
 
         private void DropDbButton_Click(object sender, EventArgs e)
         {
@@ -111,7 +140,17 @@ namespace DBMSClient
             if (dbListView.SelectedItems.Count > 0)
             {
                 string dbName = dbListView.SelectedItems[0].Text;
-                TablesView tablesView = new TablesView(this);
+                Command command = new Command();
+                command.SqlQuery = "GET TABLES";
+                command.dbName = dbName;
+                byte[] bytes = getTables(System.Text.Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(command)));
+                //
+                List<Command> commands = new List<Command>();
+                string message = cleanMessage(bytes);
+                commands = JsonConvert.DeserializeObject<IEnumerable<Command>>(message).ToList();
+
+
+                TablesView tablesView = new TablesView(this, commands);
                 tablesView.Show();
             }
             else

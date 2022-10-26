@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DBMSClient.Model
 {
-    class AtributTabel
+    public class AtributTabel
     {
         public string Type { get; set; }
         public string Name { get; set; }

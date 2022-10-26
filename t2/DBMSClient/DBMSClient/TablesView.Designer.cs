@@ -32,9 +32,12 @@
             this.tablesListView = new System.Windows.Forms.ListView();
             this.tablesHeader1 = new System.Windows.Forms.ColumnHeader();
             this.label2 = new System.Windows.Forms.Label();
-            this.listView2 = new System.Windows.Forms.ListView();
             this.dropTableButton = new System.Windows.Forms.Button();
             this.createTableButton = new System.Windows.Forms.Button();
+            this.viewTableList = new System.Windows.Forms.ListView();
+            this.columnHeader1 = new System.Windows.Forms.ColumnHeader();
+            this.createIndexButton = new System.Windows.Forms.Button();
+            this.indexComboBox = new System.Windows.Forms.ComboBox();
             this.SuspendLayout();
             // 
             // dbLabel
@@ -56,7 +59,8 @@
             this.tablesListView.Size = new System.Drawing.Size(247, 450);
             this.tablesListView.TabIndex = 1;
             this.tablesListView.UseCompatibleStateImageBehavior = false;
-            this.tablesListView.View = System.Windows.Forms.View.List;
+            this.tablesListView.View = System.Windows.Forms.View.Details;
+            this.tablesListView.SelectedIndexChanged += new System.EventHandler(this.tablesListView_SelectedIndexChanged);
             // 
             // tablesHeader1
             // 
@@ -73,14 +77,6 @@
             this.label2.TabIndex = 2;
             this.label2.Text = "Tables";
             // 
-            // listView2
-            // 
-            this.listView2.Location = new System.Drawing.Point(724, 167);
-            this.listView2.Name = "listView2";
-            this.listView2.Size = new System.Drawing.Size(600, 365);
-            this.listView2.TabIndex = 3;
-            this.listView2.UseCompatibleStateImageBehavior = false;
-            // 
             // dropTableButton
             // 
             this.dropTableButton.Location = new System.Drawing.Point(313, 324);
@@ -89,6 +85,7 @@
             this.dropTableButton.TabIndex = 4;
             this.dropTableButton.Text = "Drop Table";
             this.dropTableButton.UseVisualStyleBackColor = true;
+            this.dropTableButton.Click += new System.EventHandler(this.dropTableButton_Click);
             // 
             // createTableButton
             // 
@@ -100,14 +97,46 @@
             this.createTableButton.UseVisualStyleBackColor = true;
             this.createTableButton.Click += new System.EventHandler(this.createTableButton_Click);
             // 
+            // viewTableList
+            // 
+            this.viewTableList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.columnHeader1});
+            this.viewTableList.Location = new System.Drawing.Point(738, 154);
+            this.viewTableList.Name = "viewTableList";
+            this.viewTableList.Size = new System.Drawing.Size(606, 406);
+            this.viewTableList.TabIndex = 6;
+            this.viewTableList.UseCompatibleStateImageBehavior = false;
+            this.viewTableList.View = System.Windows.Forms.View.Details;
+            this.viewTableList.SelectedIndexChanged += new System.EventHandler(this.viewTableList_SelectedIndexChanged_1);
+            // 
+            // createIndexButton
+            // 
+            this.createIndexButton.Location = new System.Drawing.Point(945, 94);
+            this.createIndexButton.Name = "createIndexButton";
+            this.createIndexButton.Size = new System.Drawing.Size(106, 32);
+            this.createIndexButton.TabIndex = 7;
+            this.createIndexButton.Text = "Create Index";
+            this.createIndexButton.UseVisualStyleBackColor = true;
+            this.createIndexButton.Click += new System.EventHandler(this.createIndexButton_Click);
+            // 
+            // indexComboBox
+            // 
+            this.indexComboBox.FormattingEnabled = true;
+            this.indexComboBox.Location = new System.Drawing.Point(795, 99);
+            this.indexComboBox.Name = "indexComboBox";
+            this.indexComboBox.Size = new System.Drawing.Size(121, 24);
+            this.indexComboBox.TabIndex = 8;
+            // 
             // TablesView
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1410, 639);
+            this.Controls.Add(this.indexComboBox);
+            this.Controls.Add(this.createIndexButton);
+            this.Controls.Add(this.viewTableList);
             this.Controls.Add(this.createTableButton);
             this.Controls.Add(this.dropTableButton);
-            this.Controls.Add(this.listView2);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.tablesListView);
             this.Controls.Add(this.dbLabel);
@@ -124,8 +153,11 @@
         public ListView tablesListView;
         private Label label2;
         private ColumnHeader tablesHeader1;
-        private ListView listView2;
         private Button dropTableButton;
         private Button createTableButton;
+        private ListView viewTableList;
+        private ColumnHeader columnHeader1;
+        private Button createIndexButton;
+        private ComboBox indexComboBox;
     }
 }

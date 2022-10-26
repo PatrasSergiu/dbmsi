@@ -12,6 +12,7 @@ using System.Xml;
 using DBMSServer.Model;
 using DBMSServer.Service;
 using System.Reflection;
+using System.Windows.Input;
 
 namespace TcpServer
 {
@@ -62,12 +63,21 @@ namespace TcpServer
 
                 // Save the data sent by the client;  
                 Command command = JsonConvert.DeserializeObject<Command>(message); // Deserialize  
-
-
-                string text = srvDBMS.ExecuteCommand(command);
-                byte[] bytes = System.Text.Encoding.Unicode.GetBytes(text);
-                sender.GetStream().Write(bytes, 0, bytes.Length); // Send the response
-              
+                string[] words = command.SqlQuery.Split(' ');
+                if (words[0] == "GET") {
+                    if (words[1] == "TABLES")
+                    {
+                        List<Command> tables = srvDBMS.getTables(command);
+                        byte[] bytes = System.Text.Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(tables)    );
+                        sender.GetStream().Write(bytes, 0, bytes.Length);
+                    }
+                }
+                else
+                {
+                    string text = srvDBMS.ExecuteCommand(command);
+                    byte[] bytes = System.Text.Encoding.Unicode.GetBytes(text);
+                    sender.GetStream().Write(bytes, 0, bytes.Length); // Send the response
+                }   
             }
         }
 

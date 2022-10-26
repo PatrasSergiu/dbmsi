@@ -76,7 +76,10 @@ namespace DBMSClient
             if(response == "OK")
             {
                 ListViewItem item = new ListViewItem(tableNameTextBox.Text);
+                command.tableName = tableNameTextBox.Text;
+                command.SqlQuery = "";
                 tableNameTextBox.Text = "";
+                item.Tag = command;
                 _firstForm.tablesListView.Items.Add(item);
                 this.Hide();
                 this.Close();

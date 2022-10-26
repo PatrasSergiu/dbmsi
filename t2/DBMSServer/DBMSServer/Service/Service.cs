@@ -41,6 +41,46 @@ namespace DBMSServer.Service
                          dbName));
             Console.WriteLine(targetNode.OuterXml);
             root.RemoveChild(targetNode);
+            string dir = @"C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSServer\DBMSServer\" + dbName;
+            // If directory does not exist, don't even try.
+            if (Directory.Exists(dir))
+            {
+                Directory.Delete(dir, true);
+            }
+            catalog.Save(@"C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSServer\DBMSServer\Catalog.xml");
+        }
+        public void dropTable(string tableName, Command command)
+        {
+            XmlDocument catalog = new XmlDocument();
+            catalog.Load(@"C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSServer\DBMSServer\Catalog.xml");
+            var root = catalog.SelectSingleNode("Databases");
+            var targetDb = root.SelectSingleNode(String.Format("DataBase[@dbName='{0}']",
+                         command.dbName));
+
+            var allTables = targetDb.FirstChild;
+            var targetNode = allTables.SelectSingleNode(String.Format("Table[@tableName='{0}']",
+                         command.tableName));
+            Console.WriteLine("Deleting table " + command.tableName);
+            allTables.RemoveChild(targetNode);
+
+            //delete table files and index files
+            string path = @"C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSServer\DBMSServer\students\";
+            string[] filePaths = Directory.GetFiles(path, String.Format("{0}_", command.tableName), SearchOption.AllDirectories);
+            foreach (string filePath in filePaths)
+            {
+                Console.WriteLine(filePath);
+                File.Delete(filePath);
+            }
+            if(File.Exists(path + command.tableName + ".kv"))
+            {
+                File.Delete(path + command.tableName + ".kv");
+            }
+            if (File.Exists(path + command.tableName + ".ind"))
+            {
+                File.Delete(path + command.tableName + ".Ind");
+            }
+
+
 
             catalog.Save(@"C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSServer\DBMSServer\Catalog.xml");
         }
@@ -53,10 +93,9 @@ namespace DBMSServer.Service
             var root = catalog.SelectSingleNode("Databases");
             var targetDb = root.SelectSingleNode(String.Format("DataBase[@dbName='{0}']",
                          command.dbName));
-           
-            XmlNodeList allTables = targetDb.SelectNodes("/Tables");
+
             var target = targetDb.FirstChild;
-            foreach (XmlNode node in allTables)
+            foreach (XmlNode node in target)
             {
                 if (tableName == node.Attributes[0].Value)
                 {
@@ -125,7 +164,7 @@ namespace DBMSServer.Service
                     pk.AppendChild(pkAttribute);
 
                     XmlElement indexAttr = catalog.CreateElement("IAttribute");
-                    IndexAttributes.InnerText = pkey;
+                    indexAttr.InnerText = pkey;
                     IndexAttributes.AppendChild(indexAttr);
                 }
             }
@@ -180,6 +219,88 @@ namespace DBMSServer.Service
             }
         }
 
+        public void createIndex(string indexName, Command command)
+        {
+            XmlDocument catalog = new XmlDocument();
+            catalog.Load(@"C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSServer\DBMSServer\Catalog.xml");
+
+            var root = catalog.SelectSingleNode("Databases");
+            var targetDb = root.SelectSingleNode(String.Format("DataBase[@dbName='{0}']",
+                         command.dbName));
+
+            var allTables = targetDb.FirstChild;
+            var targetTable = allTables.SelectSingleNode(String.Format("Table[@tableName='{0}']",
+                         command.tableName));
+            var indexFiles = targetTable.SelectSingleNode(String.Format("IndexFiles"));
+            XmlNodeList allIndexes = indexFiles.ChildNodes;
+            //Console.WriteLine(indexFiles.OuterXml);
+            foreach(XmlNode node in allIndexes)
+            {
+                Console.WriteLine(node.Attributes[0].Value);
+                if(indexName+".ind" == node.Attributes[0].Value)
+                {
+                    throw new Exception("Exista deja un index pentru acest camp");
+                }
+                if(String.Format("{0}_{1}", command.tableName, indexName) == node.Attributes[0].Value)
+                {
+                    throw new Exception("Exista deja un index pentru acest camp");
+                }
+            }
+
+            ///nu exista index, il cream
+            XmlElement newIndex = catalog.CreateElement("IndexFile");
+            XmlElement indexAttributes = catalog.CreateElement("IndexAttributes");
+            newIndex.AppendChild(indexAttributes);
+            /// IndexFile -> IndexAttributes
+            XmlAttribute fname = catalog.CreateAttribute("fileName");
+            XmlAttribute isUnique = catalog.CreateAttribute("isUnique");
+            fname.Value = String.Format("{0}_{1}", command.tableName, indexName);
+            isUnique.Value = "1";
+            newIndex.Attributes.Append(fname);
+            newIndex.Attributes.Append(isUnique);
+            ///Index file atribut atribut -> IndexAttributes
+            XmlElement indexAttr = catalog.CreateElement("IAttribute");
+            indexAttr.InnerText = indexName;
+            indexAttributes.AppendChild(indexAttr);
+            // IndexAttributes -> IAttribute text
+            indexFiles.AppendChild(newIndex);
+            catalog.Save(@"C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSServer\DBMSServer\Catalog.xml");
+
+
+        }
+
+        public List<Command> getTables(Command command)
+        {
+            Console.WriteLine("Get tables from " + command.dbName);
+            XmlDocument catalog = new XmlDocument();
+            catalog.Load(@"C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSServer\DBMSServer\Catalog.xml");
+            var root = catalog.SelectSingleNode("Databases");
+            var targetDb = root.SelectSingleNode(String.Format("DataBase[@dbName='{0}']",
+                         command.dbName));
+
+            var target = targetDb.FirstChild;
+            //Console.WriteLine(target.OuterXml);
+            List<Command> tables    = new List<Command>(); 
+            foreach (XmlNode node in target)
+            {
+                Command table = new Command();
+                table.AttributesList = new List<AtributTabel>();
+                table.tableName = node.Attributes[0].Value;
+                XmlNodeList structure = node.SelectSingleNode("Structure").ChildNodes;
+                foreach (XmlNode node2 in structure)
+                {
+                    AtributTabel atribut = new AtributTabel();
+                    atribut.Name = node2.Attributes[0].Value;
+                    atribut.Type = node2.Attributes[1].Value;
+                    atribut.IsUnique = Convert.ToBoolean((Convert.ToInt32(node2.Attributes[2].Value)));
+                    table.AttributesList.Add(atribut);
+                }
+                table.dbName = command.dbName;
+                tables.Add(table);
+            }
+            return tables;
+        }
+
         public string ExecuteCommand(Command command)
         {
             try
@@ -198,12 +319,27 @@ namespace DBMSServer.Service
                             Console.WriteLine("Creating table");
                             createTable(words[2], command);
                         }
+                        if (words[1] == "INDEX")
+                        {
+                            Console.WriteLine("Creating  index on table" + command.tableName);
+                            createIndex(words[2], command);
+                        }
                         
                         break;
                     case "DROP":
                         if (words[1] == "DATABASE")
                         {
                             dropDatabase(words[2]);
+                        }
+                        if (words[1] == "TABLE")
+                        {
+                            dropTable(words[2], command);
+                        }
+                        break;
+                    case "GET":
+                        if (words[1] == "TABLES")
+                        {
+                            getTables(command);
                         }
                         break;
                 }
