@@ -19,6 +19,8 @@ namespace DBMSClient
     public partial class CreateTable : Form
     {
         private TablesView _firstForm;
+        public List<Command> tables = new List<Command>();
+
         public CreateTable()
         {
             InitializeComponent();
@@ -41,6 +43,7 @@ namespace DBMSClient
         private void createTableButton_Click(object sender, EventArgs e)
         {
             List<AtributTabel> attributesList = new List<AtributTabel>();
+            Command command = new Command();
             for (int r = 0; r < attributesGridView.Rows.Count - 1; r++)
             {
                 DataGridViewRow row = attributesGridView.Rows[r];
@@ -65,9 +68,27 @@ namespace DBMSClient
                 attribute.IsUnique = aux;
                 aux = Convert.ToBoolean(row.Cells[3].Value);
                 attribute.IsPrimaryKey = aux;
+                ///foreign key check
+                aux = Convert.ToBoolean(row.Cells[4].Value);
+                if (aux)
+                {
+                    var auxTables = this.tables;
+                    var itemToRemove = auxTables.SingleOrDefault(r => r.tableName == name);
+                    if (itemToRemove != null)
+                        auxTables.Remove(itemToRemove);
+                    AddFK addFK = new AddFK(this);
+                    addFK.selectedAttributeName = attribute.Name;
+                    addFK.selectedAttributeType = attribute.Type;
+                    if (attribute.FKeys != null)
+                    {
+                        addFK.fkeys = attribute.FKeys;
+                    }
+                    addFK.ShowDialog();
+                    attribute.FKeys = addFK.fkeys;
+                   
+                }
                 attributesList.Add(attribute);
             }
-            Command command = new Command();
             command.SqlQuery = String.Format("CREATE TABLE " + tableNameTextBox.Text);
             command.AttributesList = attributesList;
             command.dbName = _firstForm.dbLabel.Text.Split(' ')[2];

@@ -12,6 +12,7 @@ namespace DBMSClient.Model
         public string Name { get; set; }
         public bool IsUnique { get; set; }
         public bool IsPrimaryKey { get; set; }
-
+        //table that it references, name of the attribute that it references
+        public Dictionary<string, string> FKeys { get; set; }
     }
 }

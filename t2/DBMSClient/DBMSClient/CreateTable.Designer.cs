@@ -28,15 +28,16 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             this.label1 = new System.Windows.Forms.Label();
             this.tableNameTextBox = new System.Windows.Forms.TextBox();
             this.attributesGridView = new System.Windows.Forms.DataGridView();
+            this.createTableButton = new System.Windows.Forms.Button();
             this.attributeName = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.attributeType = new System.Windows.Forms.DataGridViewComboBoxColumn();
             this.attributeUnique = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             this.attributePK = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-            this.createTableButton = new System.Windows.Forms.Button();
+            this.foreignKey = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.attributesGridView)).BeginInit();
             this.SuspendLayout();
             // 
@@ -64,12 +65,23 @@
             this.attributeName,
             this.attributeType,
             this.attributeUnique,
-            this.attributePK});
+            this.attributePK,
+            this.foreignKey});
             this.attributesGridView.Location = new System.Drawing.Point(33, 145);
             this.attributesGridView.Name = "attributesGridView";
             this.attributesGridView.RowTemplate.Height = 25;
-            this.attributesGridView.Size = new System.Drawing.Size(445, 350);
+            this.attributesGridView.Size = new System.Drawing.Size(556, 350);
             this.attributesGridView.TabIndex = 2;
+            // 
+            // createTableButton
+            // 
+            this.createTableButton.Location = new System.Drawing.Point(181, 519);
+            this.createTableButton.Name = "createTableButton";
+            this.createTableButton.Size = new System.Drawing.Size(118, 55);
+            this.createTableButton.TabIndex = 3;
+            this.createTableButton.Text = "Create table";
+            this.createTableButton.UseVisualStyleBackColor = true;
+            this.createTableButton.Click += new System.EventHandler(this.createTableButton_Click);
             // 
             // attributeName
             // 
@@ -79,8 +91,8 @@
             // 
             // attributeType
             // 
-            dataGridViewCellStyle2.NullValue = "int";
-            this.attributeType.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle1.NullValue = "int";
+            this.attributeType.DefaultCellStyle = dataGridViewCellStyle1;
             this.attributeType.HeaderText = "Type";
             this.attributeType.Items.AddRange(new object[] {
             "int",
@@ -100,21 +112,16 @@
             this.attributePK.HeaderText = "Primary Key";
             this.attributePK.Name = "attributePK";
             // 
-            // createTableButton
+            // foreignKey
             // 
-            this.createTableButton.Location = new System.Drawing.Point(181, 519);
-            this.createTableButton.Name = "createTableButton";
-            this.createTableButton.Size = new System.Drawing.Size(118, 55);
-            this.createTableButton.TabIndex = 3;
-            this.createTableButton.Text = "Create table";
-            this.createTableButton.UseVisualStyleBackColor = true;
-            this.createTableButton.Click += new System.EventHandler(this.createTableButton_Click);
+            this.foreignKey.HeaderText = "Foreign Key";
+            this.foreignKey.Name = "foreignKey";
             // 
             // CreateTable
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(523, 586);
+            this.ClientSize = new System.Drawing.Size(623, 586);
             this.Controls.Add(this.createTableButton);
             this.Controls.Add(this.attributesGridView);
             this.Controls.Add(this.tableNameTextBox);
@@ -133,10 +140,11 @@
         private Label label1;
         private TextBox tableNameTextBox;
         private DataGridView attributesGridView;
+        private Button createTableButton;
         private DataGridViewTextBoxColumn attributeName;
         private DataGridViewComboBoxColumn attributeType;
         private DataGridViewCheckBoxColumn attributeUnique;
         private DataGridViewCheckBoxColumn attributePK;
-        private Button createTableButton;
+        private DataGridViewCheckBoxColumn foreignKey;
     }
 }

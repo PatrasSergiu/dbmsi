@@ -2,26 +2,65 @@
   <DataBase dbName="students">
     <Tables>
       <Table tableName="disciplines" fileName="disciplines.kv">
+        <Structure>
+          <Attribute attributeName="DiscID" attributeType="string" isUnique="1" />
+          <Attribute attributeName="DiscName" attributeType="string" isUnique="1" />
+          <Attribute attributeName="CreditNr" attributeType="int" isUnique="0" />
+        </Structure>
+        <primaryKey>
+          <pkAttribute>DiscID</pkAttribute>
+        </primaryKey>
+        <foreignKeys />
         <IndexFiles>
           <IndexFile fileName="disciplines.ind" isUnique="1">
             <IndexAttributes>
               <IAttribute>DiscID</IAttribute>
             </IndexAttributes>
           </IndexFile>
-          <IndexFile fileName="disciplines_DName" isUnique="1">
+        </IndexFiles>
+      </Table>
+      <Table tableName="specialization" fileName="specialization.kv">
+        <Structure>
+          <Attribute attributeName="SpecID" attributeType="string" isUnique="1" />
+          <Attribute attributeName="SpecName" attributeType="string" isUnique="0" />
+          <Attribute attributeName="Language" attributeType="string" isUnique="0" />
+        </Structure>
+        <primaryKey>
+          <pkAttribute>SpecID</pkAttribute>
+        </primaryKey>
+        <foreignKeys />
+        <IndexFiles>
+          <IndexFile fileName="specialization.ind" isUnique="1">
             <IndexAttributes>
-              <IAttribute>DName</IAttribute>
+              <IAttribute>SpecID</IAttribute>
             </IndexAttributes>
           </IndexFile>
         </IndexFiles>
+      </Table>
+      <Table tableName="groups" fileName="groups.kv">
         <Structure>
-          <Attribute attributeName="DiscID" attributeType="string" isUnique="1" />
-          <Attribute attributeName="DName" attributeType="string" isUnique="1" />
-          <Attribute attributeName="CreditNr" attributeType="int" isUnique="0" />
+          <Attribute attributeName="GroupId" attributeType="int" isUnique="1" />
+          <Attribute attributeName="SpecID" attributeType="string" isUnique="0" />
         </Structure>
         <primaryKey>
-          <pkAttribute>DiscID</pkAttribute>
+          <pkAttribute>GroupId</pkAttribute>
         </primaryKey>
+        <foreignKeys>
+          <foreignKey>
+            <references>
+              <refAttribute>SpecID</refAttribute>
+              <refTable>specialization</refTable>
+            </references>
+            <fkAttribute>SpecID</fkAttribute>
+          </foreignKey>
+        </foreignKeys>
+        <IndexFiles>
+          <IndexFile fileName="groups.ind" isUnique="1">
+            <IndexAttributes>
+              <IAttribute>GroupId</IAttribute>
+            </IndexAttributes>
+          </IndexFile>
+        </IndexFiles>
       </Table>
     </Tables>
   </DataBase>
