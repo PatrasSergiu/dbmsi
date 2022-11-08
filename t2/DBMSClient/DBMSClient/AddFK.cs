@@ -29,7 +29,6 @@ namespace DBMSClient
             }
             attributesListView.Columns.Add("Name");
             attributesListView.Columns.Add("Type");
-
         }
 
         private void addFkButton_Click(object sender, EventArgs e)

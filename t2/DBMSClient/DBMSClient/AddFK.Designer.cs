@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
+            this.titleLabel = new System.Windows.Forms.Label();
             this.tablesComboBox = new System.Windows.Forms.ComboBox();
             this.attributesListView = new System.Windows.Forms.ListView();
             this.addFkButton = new System.Windows.Forms.Button();
@@ -46,15 +46,14 @@
             this.label1.TabIndex = 0;
             this.label1.Text = "Choose a table";
             // 
-            // label2
+            // titleLabel
             // 
-            this.label2.AutoSize = true;
-            this.label2.Font = new System.Drawing.Font("Segoe UI Variable Text", 16F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.label2.Location = new System.Drawing.Point(116, 9);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(197, 30);
-            this.label2.TabIndex = 1;
-            this.label2.Text = "Add a foreign key";
+            this.titleLabel.AutoSize = true;
+            this.titleLabel.Font = new System.Drawing.Font("Segoe UI Variable Text", 14F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.titleLabel.Location = new System.Drawing.Point(116, 9);
+            this.titleLabel.Name = "titleLabel";
+            this.titleLabel.Size = new System.Drawing.Size(0, 26);
+            this.titleLabel.TabIndex = 1;
             // 
             // tablesComboBox
             // 
@@ -103,7 +102,7 @@
             this.Controls.Add(this.addFkButton);
             this.Controls.Add(this.attributesListView);
             this.Controls.Add(this.tablesComboBox);
-            this.Controls.Add(this.label2);
+            this.Controls.Add(this.titleLabel);
             this.Controls.Add(this.label1);
             this.Name = "AddFK";
             this.Text = "AddFK";
@@ -115,7 +114,7 @@
         #endregion
 
         private Label label1;
-        private Label label2;
+        public Label titleLabel;
         private ComboBox tablesComboBox;
         private ListView attributesListView;
         private Button addFkButton;

@@ -44,6 +44,23 @@ namespace DBMSClient
         {
             List<AtributTabel> attributesList = new List<AtributTabel>();
             Command command = new Command();
+            List<string> names = new List<string>();
+            for (int r = 0; r < attributesGridView.Rows.Count - 1; r++)
+            {
+                names.Add(attributesGridView.Rows[r].Cells[0].Value as String);
+            }
+            if(names.Count != names.Distinct().Count())
+            {
+                MessageBox.Show("Two fields cannot have the same name",
+                        "Oops",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error // for Warning  
+                                             //MessageBoxIcon.Error // for Error 
+                                             //MessageBoxIcon.Information  // for Information
+                                             //MessageBoxIcon.Question // for Question
+                           );
+                return;
+            }
             for (int r = 0; r < attributesGridView.Rows.Count - 1; r++)
             {
                 DataGridViewRow row = attributesGridView.Rows[r];
@@ -83,6 +100,7 @@ namespace DBMSClient
                     {
                         addFK.fkeys = attribute.FKeys;
                     }
+                    addFK.titleLabel.Text = "Foreign key for " + attribute.Name;
                     addFK.ShowDialog();
                     attribute.FKeys = addFK.fkeys;
                    
