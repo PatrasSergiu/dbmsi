@@ -25,9 +25,10 @@ namespace DBMSServer.repo
             database = client.GetDatabase(dbName);
         }
 
-        internal void CreateCollection(string collectionName, List<AtributTabel> atributes)
+        internal void CreateCollection(string collectionName, string dbName)
         {
-
+            database = client.GetDatabase(dbName);
+            var collection = database.GetCollection<Record>(collectionName);
         }
 
         internal void Insert(string table, string dbName, string key, string value)

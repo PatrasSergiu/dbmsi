@@ -46,12 +46,7 @@ namespace DBMSServer.Service
                          dbName));
             Console.WriteLine(targetNode.OuterXml);
             root.RemoveChild(targetNode);
-            string dir = @"C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSServer\DBMSServer\" + dbName;
-            // If directory does not exist, don't even try.
-            if (Directory.Exists(dir))
-            {
-                Directory.Delete(dir, true);
-            }
+            
             repository.DropDatabase(dbName);
             catalog.Save(catalogPath);
         }
@@ -68,24 +63,6 @@ namespace DBMSServer.Service
                          command.tableName));
             Console.WriteLine("Deleting table " + command.tableName);
             allTables.RemoveChild(targetNode);
-
-            //delete table files and index files
-            string path = @"C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSServer\DBMSServer\students\";
-            string[] filePaths = Directory.GetFiles(path, String.Format("{0}_", command.tableName), SearchOption.AllDirectories);
-            foreach (string filePath in filePaths)
-            {
-                Console.WriteLine(filePath);
-                File.Delete(filePath);
-            }
-            if(File.Exists(path + command.tableName + ".kv"))
-            {
-                File.Delete(path + command.tableName + ".kv");
-            }
-            if (File.Exists(path + command.tableName + ".ind"))
-            {
-                File.Delete(path + command.tableName + ".Ind");
-            }
-
 
             repository.DropCollection(command.tableName, command.dbName);
             catalog.Save(catalogPath);
@@ -227,20 +204,8 @@ namespace DBMSServer.Service
                 references.AppendChild(refTable);
 
             }
-
-
-
-
-            //create foreign key xml
-
-
+            repository.CreateCollection(tableName, command.dbName);
             catalog.Save(catalogPath);
-            var path = String.Format(@"C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSServer\DBMSServer\{0}\{1}.kv", command.dbName, tableName);
-            FileStream fs = File.Create(path);
-            path = String.Format(@"C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSServer\DBMSServer\{0}\{1}.ind", command.dbName, tableName);
-            fs = File.Create(path);
-
-
         }
 
         public void createDatabase(string dbName)

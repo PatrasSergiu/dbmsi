@@ -120,6 +120,7 @@ namespace DBMSClient
                 tableNameTextBox.Text = "";
                 item.Tag = command;
                 _firstForm.tablesListView.Items.Add(item);
+                _firstForm.tables.Add(command);
                 this.Hide();
                 this.Close();
             }
