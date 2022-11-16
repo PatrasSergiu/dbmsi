@@ -17,6 +17,16 @@
               <IAttribute>DiscID</IAttribute>
             </IndexAttributes>
           </IndexFile>
+          <IndexFile fileName="Index_disciplines_DiscName" isUnique="True">
+            <IndexAttributes>
+              <IAttribute>DiscName</IAttribute>
+            </IndexAttributes>
+          </IndexFile>
+          <IndexFile fileName="Index_disciplines_CreditNr" isUnique="False">
+            <IndexAttributes>
+              <IAttribute>CreditNr</IAttribute>
+            </IndexAttributes>
+          </IndexFile>
         </IndexFiles>
       </Table>
       <Table tableName="specialization" fileName="specialization.kv">
@@ -58,6 +68,43 @@
           <IndexFile fileName="groups.ind" isUnique="1">
             <IndexAttributes>
               <IAttribute>GroupId</IAttribute>
+            </IndexAttributes>
+          </IndexFile>
+        </IndexFiles>
+      </Table>
+      <Table tableName="tabel" fileName="tabel.kv">
+        <Structure>
+          <Attribute attributeName="aaa" attributeType="int" isUnique="1" />
+          <Attribute attributeName="bbb" attributeType="int" isUnique="0" />
+          <Attribute attributeName="ccc" attributeType="int" isUnique="0" />
+          <Attribute attributeName="ddd" attributeType="int" isUnique="1" />
+        </Structure>
+        <primaryKey>
+          <pkAttribute>aaa</pkAttribute>
+        </primaryKey>
+        <foreignKeys>
+          <foreignKey>
+            <references>
+              <refAttribute>CreditNr</refAttribute>
+              <refTable>disciplines</refTable>
+            </references>
+            <fkAttribute>bbb</fkAttribute>
+          </foreignKey>
+        </foreignKeys>
+        <IndexFiles>
+          <IndexFile fileName="tabel.ind" isUnique="1">
+            <IndexAttributes>
+              <IAttribute>aaa</IAttribute>
+            </IndexAttributes>
+          </IndexFile>
+          <IndexFile fileName="Index_tabel_bbb" isUnique="False">
+            <IndexAttributes>
+              <IAttribute>bbb</IAttribute>
+            </IndexAttributes>
+          </IndexFile>
+          <IndexFile fileName="Index_tabel_ddd" isUnique="True">
+            <IndexAttributes>
+              <IAttribute>ddd</IAttribute>
             </IndexAttributes>
           </IndexFile>
         </IndexFiles>

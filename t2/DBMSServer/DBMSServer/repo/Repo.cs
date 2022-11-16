@@ -29,6 +29,35 @@ namespace DBMSServer.repo
         {
             database = client.GetDatabase(dbName);
             var collection = database.GetCollection<Record>(collectionName);
+            string key = "aux";
+            string value = "aux";
+            collection.InsertOne(new Record(key, value));
+            var filter = Builders<Record>.Filter.Eq("_id", key);
+            collection.DeleteOne(filter);
+        }
+
+        internal void CreateIndex(string tableName, string dbName, int index)
+        {
+            database = client.GetDatabase(dbName);
+            var collection = database.GetCollection<Record>(tableName);
+            var originalTable = tableName.Split("_")[1];
+            var records = this.loadCollection(originalTable, dbName);
+            foreach(Record record in records)
+            {
+                string key = record.Value.Split("#")[index];
+                string value = record.Key;
+                if (checkExistence(tableName, dbName, key))
+                {
+                    var rec = loadRecordById(tableName, dbName, key);
+                    var filter = Builders<Record>.Filter.Eq("_id", key);
+                    var update = Builders<Record>.Update.Set(s => s.Value, String.Format("{0}#{1}", rec.Value, value));
+                    collection.UpdateOne(filter, update);
+                }
+                else
+                {
+                    collection.InsertOne(new Record(key, value));
+                }
+            }
         }
 
         internal void Insert(string table, string dbName, string key, string value)
@@ -141,6 +170,8 @@ namespace DBMSServer.repo
                 throw new Exception("There was no record found with that id");
             }
         }
+
+       
     }
 
     public class Record

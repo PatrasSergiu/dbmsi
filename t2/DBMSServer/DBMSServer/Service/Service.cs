@@ -68,8 +68,42 @@ namespace DBMSServer.Service
             catalog.Save(catalogPath);
         }
 
+        //public void createIndex(string tableName, string dbName, string fileName, AtributTabel atribut)
+        //{
+        //    XmlDocument catalog = new XmlDocument();
+        //    catalog.Load(catalogPath);
+        //    var root = catalog.SelectSingleNode("Databases");
+        //    var targetDb = root.SelectSingleNode(String.Format("DataBase[@dbName='{0}']",
+        //                 dbName));
+
+        //    var allTables = targetDb.FirstChild;
+        //    XmlNode indexFiles = allTables.SelectSingleNode(String.Format("Table[@tableName='{0}']",
+        //                tableName)).SelectSingleNode("IndexFiles");
+        //    // am ajuns la tabelul potrivit, acum creez index
+        //    XmlElement mainIndex = catalog.CreateElement("IndexFile");
+        //    XmlAttribute fname = catalog.CreateAttribute("fileName");
+        //    XmlAttribute isUnique = catalog.CreateAttribute("isUnique");
+        //    isUnique.Value = atribut.IsUnique.ToString();
+        //    fname.Value = fileName;
+        //    mainIndex.Attributes.Append(fname);
+        //    mainIndex.Attributes.Append(isUnique);
+        //    ///atasez IndexFile la indexfiles
+        //    indexFiles.AppendChild(mainIndex);
+        //    ///acum creez IndexAttributes pe care il atasez la IndexFile
+        //    XmlElement IndexAttributes = catalog.CreateElement("IndexAttributes");
+        //    mainIndex.AppendChild(IndexAttributes);
+        //    //in continuare trebuie sa creez IAttribute unde salvez atributul
+        //    XmlElement indexAttr = catalog.CreateElement("IAttribute");
+        //    indexAttr.InnerText = atribut.Name;
+        //    IndexAttributes.AppendChild(indexAttr);
+
+        //    catalog.Save(catalogPath);
+
+        //}
+
         public void createTable(string tableName, Command command)
         {
+            command.tableName = tableName;
             XmlDocument catalog = new XmlDocument();
             catalog.Load(catalogPath);
             //getting the right db
@@ -163,6 +197,8 @@ namespace DBMSServer.Service
 
                 //ar trebuii pentru fiecare tabel sa vedem toate campurile catre care este fk
             Dictionary<string, List<AtributTabel>> tables = new Dictionary<string, List<AtributTabel>>();
+            var myList = command.AttributesList.ToList();
+            myList.RemoveAll(a => a.IsPrimaryKey == true);
             foreach (AtributTabel key in fkeys)
             {
                 foreach (var item in key.FKeys)
@@ -180,6 +216,9 @@ namespace DBMSServer.Service
                         tables[item.Key].Add(key);
                     }
                 }
+                var myAttribute = myList.FirstOrDefault(i => i.Name == key.Name);
+                int index = myList.IndexOf(myAttribute);
+                repository.CreateIndex(String.Format("Index_{0}_{1}", command.tableName, key.Name), command.dbName, index);
             }
             foreach(var auxTable in tables)
             {
@@ -267,19 +306,21 @@ namespace DBMSServer.Service
             var indexFiles = targetTable.SelectSingleNode(String.Format("IndexFiles"));
             XmlNodeList allIndexes = indexFiles.ChildNodes;
             //Console.WriteLine(indexFiles.OuterXml);
-            foreach(XmlNode node in allIndexes)
+            foreach (XmlNode node in allIndexes)
             {
-                Console.WriteLine(node.Attributes[0].Value);
-                if(indexName+".ind" == node.Attributes[0].Value)
+                if (indexName + ".ind" == node.Attributes[0].Value)
                 {
                     throw new Exception("Exista deja un index pentru acest camp");
                 }
-                if(String.Format("{0}_{1}", command.tableName, indexName) == node.Attributes[0].Value)
+                if (String.Format("Index_{0}_{1}", command.tableName, indexName) == node.Attributes[0].Value)
                 {
                     throw new Exception("Exista deja un index pentru acest camp");
                 }
             }
-
+            var myList = command.AttributesList;
+            myList.RemoveAll(a => a.IsPrimaryKey == true);
+            var myAttribute = myList.FirstOrDefault(i => i.Name == indexName);
+            int index = myList.IndexOf(myAttribute);
             ///nu exista index, il cream
             XmlElement newIndex = catalog.CreateElement("IndexFile");
             XmlElement indexAttributes = catalog.CreateElement("IndexAttributes");
@@ -287,8 +328,8 @@ namespace DBMSServer.Service
             /// IndexFile -> IndexAttributes
             XmlAttribute fname = catalog.CreateAttribute("fileName");
             XmlAttribute isUnique = catalog.CreateAttribute("isUnique");
-            fname.Value = String.Format("{0}_{1}", command.tableName, indexName);
-            isUnique.Value = "1";
+            fname.Value = String.Format("Index_{0}_{1}", command.tableName, indexName);
+            isUnique.Value = myAttribute.IsUnique.ToString();
             newIndex.Attributes.Append(fname);
             newIndex.Attributes.Append(isUnique);
             ///Index file atribut atribut -> IndexAttributes
@@ -297,9 +338,10 @@ namespace DBMSServer.Service
             indexAttributes.AppendChild(indexAttr);
             // IndexAttributes -> IAttribute text
             indexFiles.AppendChild(newIndex);
+            
+
+            repository.CreateIndex(String.Format("Index_{0}_{1}", command.tableName, indexName), command.dbName, index);
             catalog.Save(catalogPath);
-
-
         }
 
         public void insertInTable(Command command)
@@ -542,6 +584,8 @@ namespace DBMSServer.Service
 
             return rezAttributes;
         }
+
+
         public void deleteFromTableWhere(Command command)
         {
             var words = command.SqlQuery.Split(" ");
@@ -582,6 +626,14 @@ namespace DBMSServer.Service
                         {
                             Console.WriteLine("Creating table");
                             createTable(words[2], command);
+                            var myList = command.AttributesList.ToList();
+                            foreach (AtributTabel atribut in myList)
+                            {
+                                if (atribut.IsPrimaryKey == false && (atribut.FKeys != null || atribut.IsUnique == true))
+                                {
+                                    createIndex(atribut.Name, command);
+                                }
+                            }
                         }
                         if (words[1] == "INDEX")
                         {
