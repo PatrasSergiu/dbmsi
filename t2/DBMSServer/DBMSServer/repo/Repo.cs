@@ -60,6 +60,23 @@ namespace DBMSServer.repo
             }
         }
 
+        internal void InsertInIndex(string tableName, string dbName, string key, string value)
+        {
+            database = client.GetDatabase(dbName);
+            var collection = database.GetCollection<Record>(tableName);
+            if (checkExistence(tableName, dbName, key))
+            {
+                var rec = loadRecordById(tableName, dbName, key);
+                var filter = Builders<Record>.Filter.Eq("_id", key);
+                var update = Builders<Record>.Update.Set(s => s.Value, String.Format("{0}#{1}", rec.Value, value));
+                collection.UpdateOne(filter, update);
+            }
+            else
+            {
+                collection.InsertOne(new Record(key, value));
+            }
+        }
+
         internal void Insert(string table, string dbName, string key, string value)
         {
             Console.WriteLine(table + " " + dbName);
@@ -75,7 +92,7 @@ namespace DBMSServer.repo
             }
         }
 
-        bool checkExistence(string table, string dbName, string key)
+        internal bool checkExistence(string table, string dbName, string key)
         {
             try
             {
@@ -171,7 +188,52 @@ namespace DBMSServer.repo
             }
         }
 
-       
+        internal void DeleteRecordIndex(string tableName, string dbName, string keyToDelete, string indexKey)
+        {
+            //id este primary key-ul care trebuie sters
+            //noi trebuie pentru fiecare index sa stergem
+            //a) tot randul care il contine pe id ca si valoare in cazul celor unique
+            //b) sa eliminam cheia id din indexul non-unique
+            database = client.GetDatabase(dbName);
+            var collection = database.GetCollection<Record>(tableName);
+            if (checkExistence(tableName, dbName, indexKey))
+            {
+                //am obtinut recordul
+                Record record = loadRecordById(tableName, dbName, indexKey);
+                //splituim valoarea dupa #, daca count > 1 atunci indexul este non-unique, altfel este unique
+                List<string> splits = record.Value.Split("#").ToList();
+                if(splits.Count > 1)
+                {
+                    //index non-unique
+                    string value = "";
+                    foreach(string pk in splits)
+                    {
+                        if(pk != keyToDelete)
+                        {
+                            if (value == "")
+                                value = pk;
+                            else
+                                value += "#" + pk;
+                        }
+                    }
+                    var filter = Builders<Record>.Filter.Eq("_id", indexKey);
+                    var update = Builders<Record>.Update.Set(s => s.Value, value);
+                    collection.UpdateOne(filter, update);
+                }
+                else
+                {
+                    //index unique;
+                    //a) tot randul care il contine pe id ca si valoare in cazul celor unique
+                    var filter = Builders<Record>.Filter.Eq("_id", indexKey);
+                    collection.DeleteOne(filter);
+                }
+                
+            }
+            else
+            {
+                throw new Exception("There is no record with that id");
+            }
+        }
     }
 
     public class Record

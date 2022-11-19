@@ -4,7 +4,7 @@
       <Table tableName="disciplines" fileName="disciplines.kv">
         <Structure>
           <Attribute attributeName="DiscID" attributeType="string" isUnique="1" />
-          <Attribute attributeName="DiscName" attributeType="string" isUnique="1" />
+          <Attribute attributeName="DName" attributeType="string" isUnique="0" />
           <Attribute attributeName="CreditNr" attributeType="int" isUnique="0" />
         </Structure>
         <primaryKey>
@@ -17,14 +17,9 @@
               <IAttribute>DiscID</IAttribute>
             </IndexAttributes>
           </IndexFile>
-          <IndexFile fileName="Index_disciplines_DiscName" isUnique="True">
+          <IndexFile fileName="Index_disciplines_DName" isUnique="False">
             <IndexAttributes>
-              <IAttribute>DiscName</IAttribute>
-            </IndexAttributes>
-          </IndexFile>
-          <IndexFile fileName="Index_disciplines_CreditNr" isUnique="False">
-            <IndexAttributes>
-              <IAttribute>CreditNr</IAttribute>
+              <IAttribute>DName</IAttribute>
             </IndexAttributes>
           </IndexFile>
         </IndexFiles>
@@ -70,48 +65,80 @@
               <IAttribute>GroupId</IAttribute>
             </IndexAttributes>
           </IndexFile>
+          <IndexFile fileName="Index_groups_SpecID" isUnique="False">
+            <IndexAttributes>
+              <IAttribute>SpecID</IAttribute>
+            </IndexAttributes>
+          </IndexFile>
         </IndexFiles>
       </Table>
-      <Table tableName="tabel" fileName="tabel.kv">
+      <Table tableName="students" fileName="students.kv">
         <Structure>
-          <Attribute attributeName="aaa" attributeType="int" isUnique="1" />
-          <Attribute attributeName="bbb" attributeType="int" isUnique="0" />
-          <Attribute attributeName="ccc" attributeType="int" isUnique="0" />
-          <Attribute attributeName="ddd" attributeType="int" isUnique="1" />
+          <Attribute attributeName="StudID" attributeType="int" isUnique="1" />
+          <Attribute attributeName="GroupId" attributeType="int" isUnique="0" />
+          <Attribute attributeName="StudName" attributeType="string" isUnique="0" />
+          <Attribute attributeName="Email" attributeType="string" isUnique="0" />
         </Structure>
         <primaryKey>
-          <pkAttribute>aaa</pkAttribute>
+          <pkAttribute>StudID</pkAttribute>
         </primaryKey>
         <foreignKeys>
           <foreignKey>
             <references>
-              <refAttribute>CreditNr</refAttribute>
-              <refTable>disciplines</refTable>
+              <refAttribute>GroupId</refAttribute>
+              <refTable>groups</refTable>
             </references>
-            <fkAttribute>bbb</fkAttribute>
+            <fkAttribute>GroupId</fkAttribute>
           </foreignKey>
         </foreignKeys>
         <IndexFiles>
-          <IndexFile fileName="tabel.ind" isUnique="1">
+          <IndexFile fileName="students.ind" isUnique="1">
             <IndexAttributes>
-              <IAttribute>aaa</IAttribute>
+              <IAttribute>StudID</IAttribute>
             </IndexAttributes>
           </IndexFile>
-          <IndexFile fileName="Index_tabel_bbb" isUnique="False">
+          <IndexFile fileName="Index_students_GroupId" isUnique="False">
             <IndexAttributes>
-              <IAttribute>bbb</IAttribute>
+              <IAttribute>GroupId</IAttribute>
             </IndexAttributes>
           </IndexFile>
-          <IndexFile fileName="Index_tabel_ddd" isUnique="True">
+        </IndexFiles>
+      </Table>
+      <Table tableName="marks" fileName="marks.kv">
+        <Structure>
+          <Attribute attributeName="StudID" attributeType="int" isUnique="0" />
+          <Attribute attributeName="DiscID" attributeType="string" isUnique="0" />
+          <Attribute attributeName="Mark" attributeType="int" isUnique="0" />
+        </Structure>
+        <primaryKey>
+          <pkAttribute>StudID</pkAttribute>
+          <pkAttribute>DiscID</pkAttribute>
+        </primaryKey>
+        <foreignKeys>
+          <foreignKey>
+            <references>
+              <refAttribute>StudID</refAttribute>
+              <refTable>students</refTable>
+            </references>
+            <fkAttribute>StudID</fkAttribute>
+          </foreignKey>
+          <foreignKey>
+            <references>
+              <refAttribute>DiscID</refAttribute>
+              <refTable>disciplines</refTable>
+            </references>
+            <fkAttribute>DiscID</fkAttribute>
+          </foreignKey>
+        </foreignKeys>
+        <IndexFiles>
+          <IndexFile fileName="marks.ind" isUnique="1">
             <IndexAttributes>
-              <IAttribute>ddd</IAttribute>
+              <IAttribute>StudID</IAttribute>
+              <IAttribute>DiscID</IAttribute>
             </IndexAttributes>
           </IndexFile>
         </IndexFiles>
       </Table>
     </Tables>
-  </DataBase>
-  <DataBase dbName="db2">
-    <Tables />
   </DataBase>
 </Databases>

@@ -68,6 +68,18 @@ namespace DBMSClient
                     {
                         tablesListView.Items.Remove(tablesListView.SelectedItems[0]);
                     }
+                    MessageBox.Show("Tabelul a fost sters cu succes", "Succes", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                else
+                {
+                    MessageBox.Show(response,
+                        "Oops",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error // for Warning  
+                                               //MessageBoxIcon.Error // for Error 
+                                               //MessageBoxIcon.Information  // for Information
+                                               //MessageBoxIcon.Question // for Question
+                           );
                 }
             }
             else
@@ -259,6 +271,7 @@ namespace DBMSClient
                 string whereClause = deleteWhereTextBox.Text;
                 Command command = new Command();
                 command = selectedTable;
+                command.Values = null;
                 command.SqlQuery = String.Format("DELETE WHERE {0} {1}", whereAttribute, whereClause);
                 byte[] bytes = Extras.sendMessage(System.Text.Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(command)));
                 string response = Extras.cleanMessage(bytes);
