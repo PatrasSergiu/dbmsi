@@ -4,7 +4,7 @@
       <Table tableName="disciplines" fileName="disciplines.kv">
         <Structure>
           <Attribute attributeName="DiscID" attributeType="string" isUnique="1" />
-          <Attribute attributeName="DName" attributeType="string" isUnique="0" />
+          <Attribute attributeName="DName" attributeType="string" isUnique="1" />
           <Attribute attributeName="CreditNr" attributeType="int" isUnique="0" />
         </Structure>
         <primaryKey>
@@ -12,14 +12,24 @@
         </primaryKey>
         <foreignKeys />
         <IndexFiles>
-          <IndexFile fileName="disciplines.ind" isUnique="1">
+          <IndexFile fileName="disciplines" isUnique="1">
             <IndexAttributes>
               <IAttribute>DiscID</IAttribute>
             </IndexAttributes>
           </IndexFile>
-          <IndexFile fileName="Index_disciplines_DName" isUnique="False">
+          <IndexFile fileName="Index_disciplines_DiscID" isUnique="1">
+            <IndexAttributes>
+              <IAttribute>DiscID</IAttribute>
+            </IndexAttributes>
+          </IndexFile>
+          <IndexFile fileName="Index_disciplines_DName" isUnique="1">
             <IndexAttributes>
               <IAttribute>DName</IAttribute>
+            </IndexAttributes>
+          </IndexFile>
+          <IndexFile fileName="Index_disciplines_CreditNr" isUnique="0">
+            <IndexAttributes>
+              <IAttribute>CreditNr</IAttribute>
             </IndexAttributes>
           </IndexFile>
         </IndexFiles>
@@ -35,9 +45,19 @@
         </primaryKey>
         <foreignKeys />
         <IndexFiles>
-          <IndexFile fileName="specialization.ind" isUnique="1">
+          <IndexFile fileName="specialization" isUnique="1">
             <IndexAttributes>
               <IAttribute>SpecID</IAttribute>
+            </IndexAttributes>
+          </IndexFile>
+          <IndexFile fileName="Index_specialization_SpecID" isUnique="1">
+            <IndexAttributes>
+              <IAttribute>SpecID</IAttribute>
+            </IndexAttributes>
+          </IndexFile>
+          <IndexFile fileName="Index_specialization_Language" isUnique="0">
+            <IndexAttributes>
+              <IAttribute>Language</IAttribute>
             </IndexAttributes>
           </IndexFile>
         </IndexFiles>
@@ -60,12 +80,17 @@
           </foreignKey>
         </foreignKeys>
         <IndexFiles>
-          <IndexFile fileName="groups.ind" isUnique="1">
+          <IndexFile fileName="groups" isUnique="1">
             <IndexAttributes>
               <IAttribute>GroupId</IAttribute>
             </IndexAttributes>
           </IndexFile>
-          <IndexFile fileName="Index_groups_SpecID" isUnique="False">
+          <IndexFile fileName="Index_groups_GroupId" isUnique="1">
+            <IndexAttributes>
+              <IAttribute>GroupId</IAttribute>
+            </IndexAttributes>
+          </IndexFile>
+          <IndexFile fileName="Index_groups_SpecID" isUnique="0">
             <IndexAttributes>
               <IAttribute>SpecID</IAttribute>
             </IndexAttributes>
@@ -92,12 +117,17 @@
           </foreignKey>
         </foreignKeys>
         <IndexFiles>
-          <IndexFile fileName="students.ind" isUnique="1">
+          <IndexFile fileName="students" isUnique="1">
             <IndexAttributes>
               <IAttribute>StudID</IAttribute>
             </IndexAttributes>
           </IndexFile>
-          <IndexFile fileName="Index_students_GroupId" isUnique="False">
+          <IndexFile fileName="Index_students_StudID" isUnique="1">
+            <IndexAttributes>
+              <IAttribute>StudID</IAttribute>
+            </IndexAttributes>
+          </IndexFile>
+          <IndexFile fileName="Index_students_GroupId" isUnique="0">
             <IndexAttributes>
               <IAttribute>GroupId</IAttribute>
             </IndexAttributes>
@@ -131,9 +161,19 @@
           </foreignKey>
         </foreignKeys>
         <IndexFiles>
-          <IndexFile fileName="marks.ind" isUnique="1">
+          <IndexFile fileName="marks" isUnique="1">
             <IndexAttributes>
               <IAttribute>StudID</IAttribute>
+              <IAttribute>DiscID</IAttribute>
+            </IndexAttributes>
+          </IndexFile>
+          <IndexFile fileName="Index_marks_StudID" isUnique="0">
+            <IndexAttributes>
+              <IAttribute>StudID</IAttribute>
+            </IndexAttributes>
+          </IndexFile>
+          <IndexFile fileName="Index_marks_DiscID" isUnique="0">
+            <IndexAttributes>
               <IAttribute>DiscID</IAttribute>
             </IndexAttributes>
           </IndexFile>

@@ -146,10 +146,7 @@ namespace DBMSClient
                     panel1.Show();
                     pointY += 30;
 
-                    if (atr.IsPrimaryKey == false)
-                    {
                         deleteComboBox.Items.Add(atr.Name);
-                    }
                 }
                 foreach (ColumnHeader column in viewTableList.Columns)
                 {
@@ -167,16 +164,65 @@ namespace DBMSClient
 
         }
 
+        //private void createIndexButton_Click(object sender, EventArgs e)
+        //{
+
+        //    if (indexComboBox.SelectedIndex == -1)
+        //    {
+        //        MessageBox.Show("Please choose a field to create an index for");
+        //    }
+        //    else
+        //    {
+        //        string selected = indexComboBox.SelectedItem.ToString();
+        //        Command command = new Command();
+        //        command = selectedTable;
+        //        command.SqlQuery = String.Format("CREATE INDEX " + selected);
+        //        byte[] bytes = Extras.sendMessage(System.Text.Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(command)));
+        //        string response = Extras.cleanMessage(bytes);
+        //        if (response == "OK")
+        //        {
+        //            foreach (TextBox tb in textBoxes)
+        //            {
+        //                tb.Clear();
+        //            }
+        //            MessageBox.Show("Creeat cu succes");
+        //        }
+        //        else
+        //        {
+        //            MessageBox.Show("Exista deja un index cu acest nume sau a aparut o eroare");
+        //        }
+        //    }
+        //}
+
         private void createIndexButton_Click(object sender, EventArgs e)
         {
-            if (indexComboBox.SelectedIndex == -1)
+            if(tablesListView.SelectedItems.Count > 0)
             {
-                MessageBox.Show("Please choose a field to create an index for");
-            }
-            else
-            {
-                string selected = indexComboBox.SelectedItem.ToString();
-                Command command = new Command();
+                ListViewItem item = tablesListView.SelectedItems[0];
+                Command command = (Command)item.Tag;
+                List<string> options = new List<string>();
+
+                foreach (AtributTabel atr in command.AttributesList)
+                {
+                    options.Add(atr.Name);
+                }
+                CreateIndex createIndex = new CreateIndex(options);
+                createIndex.ShowDialog();
+                options = createIndex.selected;
+
+                string selected = "";
+                foreach(string option in options)
+                {
+                    if (selected == "")
+                    {
+                        selected = option;
+                    }
+                    else
+                    {
+                        selected += " " + option;
+                    }
+                }
+                command = new Command();
                 command = selectedTable;
                 command.SqlQuery = String.Format("CREATE INDEX " + selected);
                 byte[] bytes = Extras.sendMessage(System.Text.Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(command)));
@@ -194,6 +240,12 @@ namespace DBMSClient
                     MessageBox.Show("Exista deja un index cu acest nume sau a aparut o eroare");
                 }
             }
+            else
+            {
+                MessageBox.Show("Please select a table first", "Oops", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            
+
         }
 
         private void insertRecordButton_Click(object sender, EventArgs e)

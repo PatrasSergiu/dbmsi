@@ -113,6 +113,13 @@ namespace DBMSServer.Service
             Console.WriteLine("Deleting table " + command.tableName);
             allTables.RemoveChild(targetNode);
 
+            var indexes = getIndexes(command.tableName, command.dbName);
+            for (int i = 1; i < indexes.Count; i++)
+            {
+                string numeTabel = String.Format("Index_{0}_{1}", command.tableName, indexes[i]);
+                repository.DropCollection(numeTabel, command.dbName);
+            }
+
             repository.DropCollection(command.tableName, command.dbName);
             catalog.Save(catalogPath);
         }
@@ -163,7 +170,7 @@ namespace DBMSServer.Service
             var target = targetDb.FirstChild;
             foreach (XmlNode node in target)
             {
-                if (tableName == node.Attributes[0].Value)
+                if (tableName+".kv" == node.Attributes[0].Value)
                 {
                     throw new Exception("Exista deja tabel cu acest nume");
                 }
@@ -215,12 +222,16 @@ namespace DBMSServer.Service
                     fkeys.Add(atribut);
                 }
             }
+
+            string mainIndexFn = pkNames[0];
+            for (int i = 1; i < pkNames.Count; i++)
+                mainIndexFn += " " + pkNames[i];
             ///main IndexFile
             XmlElement mainIndex = catalog.CreateElement("IndexFile");
             XmlAttribute fname = catalog.CreateAttribute("fileName");
             XmlAttribute isUnique = catalog.CreateAttribute("isUnique");
             isUnique.Value = "1";
-            fname.Value = String.Format("{0}.ind", tableName);
+            fname.Value = String.Format("{0}", tableName);
             mainIndex.Attributes.Append(fname);
             mainIndex.Attributes.Append(isUnique);
 
@@ -344,6 +355,7 @@ namespace DBMSServer.Service
         {
             XmlDocument catalog = new XmlDocument();
             catalog.Load(catalogPath);
+            string collectionName = String.Format("Index_{0}_{1}", command.tableName, indexName);
 
             var root = catalog.SelectSingleNode("Databases");
             var targetDb = root.SelectSingleNode(String.Format("DataBase[@dbName='{0}']",
@@ -361,15 +373,34 @@ namespace DBMSServer.Service
                 {
                     throw new Exception("Exista deja un index pentru acest camp");
                 }
-                if (String.Format("Index_{0}_{1}", command.tableName, indexName) == node.Attributes[0].Value)
+                if (collectionName == node.Attributes[0].Value)
                 {
                     throw new Exception("Exista deja un index pentru acest camp");
                 }
             }
             var myList = command.AttributesList;
-            myList.RemoveAll(a => a.IsPrimaryKey == true);
-            var myAttribute = myList.FirstOrDefault(i => i.Name == indexName);
-            int index = myList.IndexOf(myAttribute);
+            //myList.RemoveAll(a => a.IsPrimaryKey == true);
+            //var myAttribute = myList.FirstOrDefault(i => i.Name == indexName);
+            //int index = myList.IndexOf(myAttribute);
+            var selectedIndexes = indexName.Split(" ");
+            bool Unique = true;
+            List<AtributTabel> indexList = new List<AtributTabel>();
+            foreach(AtributTabel atr in myList)
+            {
+                if (selectedIndexes.Contains(atr.Name))
+                {
+                    indexList.Add(atr);
+                    if (atr.IsUnique == false)
+                        Unique = false;
+                }
+            }
+            //pana aici am in indexList toate numele de atribute care fac parte din indexul meu
+            //in unique daca e unique sau nu
+            //mai departe trebuie sa modific xml sa aiba toate campurile nu doar unul
+            //trebuie sa fac cumva sa verific in repo ce si cum
+
+
+
             ///nu exista index, il cream
             XmlElement newIndex = catalog.CreateElement("IndexFile");
             XmlElement indexAttributes = catalog.CreateElement("IndexAttributes");
@@ -377,19 +408,52 @@ namespace DBMSServer.Service
             /// IndexFile -> IndexAttributes
             XmlAttribute fname = catalog.CreateAttribute("fileName");
             XmlAttribute isUnique = catalog.CreateAttribute("isUnique");
-            fname.Value = String.Format("Index_{0}_{1}", command.tableName, indexName);
-            isUnique.Value = myAttribute.IsUnique.ToString();
+            fname.Value = collectionName;
+            isUnique.Value = (Unique == true) ? "1" : "0";
             newIndex.Attributes.Append(fname);
             newIndex.Attributes.Append(isUnique);
             ///Index file atribut atribut -> IndexAttributes
-            XmlElement indexAttr = catalog.CreateElement("IAttribute");
-            indexAttr.InnerText = indexName;
-            indexAttributes.AppendChild(indexAttr);
+            foreach(AtributTabel ind in indexList)
+            {
+                XmlElement indexAttr = catalog.CreateElement("IAttribute");
+                indexAttr.InnerText = ind.Name;
+                indexAttributes.AppendChild(indexAttr);
+            }
             // IndexAttributes -> IAttribute text
             indexFiles.AppendChild(newIndex);
+           
+            var records = repository.loadCollection(command.tableName, command.dbName);
+            foreach(Record record in records)
+            {
+                var keys = record.Key.Split("$");
+                var values = record.Value.Split("#");
+                string indexKey = "";
+                string indexValue = "";
+                int kInd = 0;
+                int vInd = 0;
+                foreach (AtributTabel atr in myList)
+                {
+                    string currentAttr = "";
+                    if (atr.IsPrimaryKey)
+                    {
+                        currentAttr = keys[kInd];
+                        kInd++;
+                        indexValue = (indexValue == "") ? currentAttr : indexValue += "$" + currentAttr;
+                    }
+                    else
+                    {
+                        currentAttr = values[vInd];
+                        vInd++;                      
+                    }
+                    if (indexList.Contains(atr))
+                    {
+                        indexKey = (indexKey == "") ? currentAttr : indexKey += "#" + currentAttr;
+                    }
 
+                }
+                repository.InsertInIndex(collectionName, command.dbName, indexKey, indexValue);
+            }
 
-            repository.CreateIndex(String.Format("Index_{0}_{1}", command.tableName, indexName), command.dbName, index);
             catalog.Save(catalogPath);
         }
 
@@ -409,7 +473,13 @@ namespace DBMSServer.Service
             List<string> rez = new List<string>();
             foreach (XmlNode node in indexFiles)
             {
-                rez.Add(node.SelectSingleNode("IndexAttributes/IAttribute").InnerText);
+                var indexAttributes = node.SelectSingleNode("IndexAttributes");
+                string val = "";
+                foreach(XmlNode iattribute in indexAttributes)
+                {
+                    val = (val == "") ? iattribute.InnerText : val += "$" + iattribute.InnerText;
+                }
+                rez.Add(val);
             }
 
             return rez;
@@ -459,13 +529,8 @@ namespace DBMSServer.Service
 
             
             //get all pkeys
-            List<string> pkeys = new List<string>();
-            XmlNodeList keys = targetTable.SelectSingleNode("primaryKey").ChildNodes;
-            foreach (XmlNode k in keys)
-            {
-                Console.WriteLine("Primary key: " + k.InnerText);
-                pkeys.Add(k.InnerText);
-            }
+            List<string> pkeys = getPrimaryKeys(command.tableName, command.dbName);
+
             foreach (XmlElement atribut in targetStructure.ChildNodes)
             {
                 AtributTabel at = new AtributTabel();
@@ -478,7 +543,7 @@ namespace DBMSServer.Service
                     if (key == "")
                         key = command.Values[at.Name];
                     else
-                        key += "#" + command.Values[at.Name];
+                        key += "$" + command.Values[at.Name];
                 }
                 else
                 {
@@ -515,12 +580,17 @@ namespace DBMSServer.Service
             
             repository.Insert(command.tableName, command.dbName, key, value);
             var indexes = this.getIndexes(command.tableName, command.dbName);
-            foreach (var index in indexes)
+            for (int i = 1; i < indexes.Count;i++)
             {
-                Console.WriteLine(index);
-                value = command.Values[index];
+                Console.WriteLine(indexes[i]);
+                var splits = indexes[i].Split("$");
+                value = "";
+                foreach(string s in splits)
+                {
+                    value = (value == "") ? command.Values[s] : value += "$" + command.Values[s];
+                }
                 if (value != key)
-                    repository.InsertInIndex(String.Format("Index_{0}_{1}", command.tableName, index), command.dbName, value, key);
+                    repository.InsertInIndex(String.Format("Index_{0}_{1}", command.tableName, indexes[i].Replace("$", " ")), command.dbName, value, key);
             }
             //foreach index get value and insert (indexV, key)
         }
@@ -554,7 +624,7 @@ namespace DBMSServer.Service
                     if (key == "")
                         key = command.Values[at.Name];
                     else
-                        key += "#" + command.Values[at.Name];
+                        key += "$" + command.Values[at.Name];
                 }
                 else
                 {
@@ -573,7 +643,35 @@ namespace DBMSServer.Service
             checkValues(atribute, command.Values);
             //values are now checked, should be sent to repo for inserting
             //before sending, we should create the key-value pairs
+            var originalRecord = createObject(command.tableName, command.dbName, repository.loadRecordById(command.tableName, command.dbName, key));
             repository.UpdateRecord(command.tableName, command.dbName, key, value);
+            var recordValues = createObject(command.tableName, command.dbName, new Record(key, value));
+            var indexes = this.getIndexes(command.tableName, command.dbName);
+            for (int index = 1; index < indexes.Count; index++)
+            {
+                //id este primary key-ul care trebuie sters
+                //noi trebuie pentru fiecare index sa stergem
+                //a) tot randul care il contine pe id ca si valoare in cazul celor unique
+                //b) sa eliminam cheia id din indexul non-unique
+
+                var splits = indexes[index].Split("$");
+                var indexKey = "";
+                var originalKey = "";
+                var indexValue = "";
+                foreach (string s in splits)
+                {
+                    indexKey = (indexKey == "") ? recordValues[s] : indexKey += "$" + recordValues[s];
+                    originalKey = (originalKey == "") ? originalRecord[s] : originalKey += "$" + originalRecord[s];
+                }
+                indexValue = key;
+                if (indexKey != indexValue)
+                {
+                    string indexTable = String.Format("Index_{0}_{1}", command.tableName, indexes[index].Replace("$", " "));
+                    Console.WriteLine(indexTable + " deleting " + indexKey);
+                    repository.DeleteRecordIndex(String.Format("Index_{0}_{1}", command.tableName, indexes[index].Replace("$", " ")), command.dbName, key, originalKey);
+                    repository.InsertInIndex(String.Format("Index_{0}_{1}", command.tableName, indexes[index].Replace("$", " ")), command.dbName, indexKey, indexValue);
+                }
+            }
         }
 
         public void checkValues(List<AtributTabel> atribute, Dictionary<string, string> values)
@@ -653,6 +751,31 @@ namespace DBMSServer.Service
             return tables;
         }
 
+        public Dictionary<string, string> createObject(string tableName, string dbName, Record record)
+        {
+            Dictionary<string, string> result = new Dictionary<string, string>();
+
+            var keys = record.Key.Split("$");
+            var values = record.Value.Split("#");
+            int kInd = 0;
+            int vInd = 0;
+            var atribute = getTableAttributes(tableName, dbName);
+            foreach(AtributTabel atr in atribute)
+            {
+                if (atr.IsPrimaryKey)
+                {
+                    result.Add(atr.Name, keys[kInd]);
+                    kInd++;
+                }
+                else
+                {
+                    result.Add(atr.Name, values[vInd]);
+                    vInd++;
+                }
+            }
+
+            return result;
+        }
 
         public void deleteFromTable(Command command, string id)
         {
@@ -675,18 +798,29 @@ namespace DBMSServer.Service
                     throw new Exception("Cannot delete the record with the id " + id + " because it is referenced in table " + fk.table);
                 }
             }
-
+            Record record = repository.loadRecordById(command.tableName, command.dbName, id);
+            var recordValues = createObject(command.tableName, command.dbName, record);
             repository.DeleteRecord(command.tableName, command.dbName, id);
             var indexes = getIndexes(command.tableName, command.dbName);
-            foreach (var index in indexes)
+            for (int index = 1; index < indexes.Count; index++)
             {
                 //id este primary key-ul care trebuie sters
                 //noi trebuie pentru fiecare index sa stergem
                 //a) tot randul care il contine pe id ca si valoare in cazul celor unique
                 //b) sa eliminam cheia id din indexul non-unique
-                var indexValue = command.Values[index];
-                if (indexValue != id)
-                    repository.DeleteRecordIndex(String.Format("Index_{0}_{1}", command.tableName, index), command.dbName, id, indexValue);
+
+                var splits = indexes[index].Split("$");
+                string value = "";
+                foreach (string s in splits)
+                {
+                    value = (value == "") ? recordValues[s] : value += "$" + recordValues[s];
+                }
+
+                if (value != id)
+                {
+                    Console.WriteLine(String.Format("Index_{0}_{1}", command.tableName, indexes[index].Replace("$", " ")) + " deleting " + value);
+                    repository.DeleteRecordIndex(String.Format("Index_{0}_{1}", command.tableName, indexes[index].Replace("$", " ")), command.dbName, id, value);
+                }
             }
         }
         public List<string> getPrimaryKeys(string tableName, string dbName)
@@ -769,7 +903,8 @@ namespace DBMSServer.Service
             var myAttribute = splits[2];
             var myAttributeValue = splits[3];
             var indexes = getIndexes(command.tableName, command.dbName);
-            if (indexes.Contains(myAttribute) == false) { 
+            if (indexes.Contains(myAttribute) == false) {
+                throw new Exception("Cannot delete on a field there is no index on. Please create an index first");
                 deleteFromTableWhere(command);
                 return;
             }
@@ -787,19 +922,40 @@ namespace DBMSServer.Service
                     repository.DeleteRecord(command.tableName, command.dbName, key);
                     //now how do i know which part of the value is the index im trying to delete
                     List<string> values = record.Value.Split("#").ToList();
+                    var recordValues = createObject(command.tableName, command.dbName, record);
                     int position = 0;
-                    foreach (AtributTabel atr in command.AttributesList)
+                    for (int index = 1; index < indexes.Count; index++)
                     {
-                        if (atr.IsPrimaryKey == false)
+                        //id este primary key-ul care trebuie sters
+                        //noi trebuie pentru fiecare index sa stergem
+                        //a) tot randul care il contine pe id ca si valoare in cazul celor unique
+                        //b) sa eliminam cheia id din indexul non-unique
+
+                        splits = indexes[index].Split("$");
+                        string value = "";
+                        foreach (string s in splits)
                         {
-                            if (indexes.Contains(atr.Name))
-                            {
-                                var indexKey = values[position];
-                                repository.DeleteRecordIndex(String.Format("Index_{0}_{1}", command.tableName, atr.Name), command.dbName, key, indexKey);
-                            }
-                            position++;
+                            value = (value == "") ? recordValues[s] : value += "$" + recordValues[s];
+                        }
+
+                        if (value != key)
+                        {
+                            Console.WriteLine(String.Format("Index_{0}_{1}", command.tableName, indexes[index].Replace("$", " ")) + " deleting " + value);
+                            repository.DeleteRecordIndex(String.Format("Index_{0}_{1}", command.tableName, indexes[index].Replace("$", " ")), command.dbName, key, value);
                         }
                     }
+                    //foreach (AtributTabel atr in command.AttributesList)
+                    //{
+                    //    if (atr.IsPrimaryKey == false)
+                    //    {
+                    //        if (indexes.Contains(atr.Name))
+                    //        {
+                    //            var indexKey = values[position];
+                    //            repository.DeleteRecordIndex(String.Format("Index_{0}_{1}", command.tableName, atr.Name), command.dbName, key, indexKey);
+                    //        }
+                    //        position++;
+                    //    }
+                    //}
                 }
             }
             //load record
@@ -828,10 +984,11 @@ namespace DBMSServer.Service
                         {
                             Console.WriteLine("Creating table");
                             createTable(words[2], command);
-                            var myList = command.AttributesList.ToList();
+                            var myList = command.AttributesList;
+                            //work here
                             foreach (AtributTabel atribut in myList)
                             {
-                                if (atribut.IsPrimaryKey == false && (atribut.FKeys != null || atribut.IsUnique == true))
+                                if (atribut.FKeys != null || atribut.IsUnique == true)
                                 {
                                     createIndex(atribut.Name, command);
                                 }
@@ -840,7 +997,10 @@ namespace DBMSServer.Service
                         if (words[1] == "INDEX")
                         {
                             Console.WriteLine("Creating  index on table" + command.tableName);
-                            createIndex(words[2], command);
+                            string indexName = words[2];
+                            for (int i = 3; i < words.Length; i++)
+                                indexName += " " + words[i];
+                            createIndex(indexName, command);
                         }
 
                         break;

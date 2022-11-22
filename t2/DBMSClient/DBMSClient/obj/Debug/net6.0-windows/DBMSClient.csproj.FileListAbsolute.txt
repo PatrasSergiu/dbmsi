@@ -21,3 +21,4 @@ C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSClient\DBMSClient\obj\Debug\net6.0-
 C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSClient\DBMSClient\obj\Debug\net6.0-windows\DBMSClient.TablesView.resources
 C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSClient\DBMSClient\obj\Debug\net6.0-windows\DBMSClient.CreateTable.resources
 C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSClient\DBMSClient\obj\Debug\net6.0-windows\DBMSClient.AddFK.resources
+C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSClient\DBMSClient\obj\Debug\net6.0-windows\DBMSClient.CreateIndex.resources

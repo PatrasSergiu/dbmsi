@@ -4,6 +4,9 @@
     <Compile Update="AddFK.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="CreateIndex.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="CreateTable.cs">
       <SubType>Form</SubType>
     </Compile>
