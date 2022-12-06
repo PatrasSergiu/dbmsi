@@ -3,7 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using DBMSServer.Model;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
@@ -76,6 +78,36 @@ namespace DBMSServer.repo
                 collection.InsertOne(new Record(key, value));
             }
         }
+        internal void testInsert()
+        {
+            Random random = new Random();
+            database = client.GetDatabase("test");
+            var collection = database.GetCollection<Record>("testTable");
+            var collectionIndex = database.GetCollection<Record>("Index_testTable_c");
+            string a, b, c;
+            int mult = 10;
+            for (int i = 1; i < 1000001; i++)
+            {
+                a = i.ToString();
+                b = random.Next(1, 20).ToString();
+                c = mult.ToString();
+                if (i % 1000 == 0) mult = mult * 2;
+                collection.InsertOne(new Record(a, b+"#"+c));
+
+                if (checkExistence("Index_testTable_c", "test", c))
+                {
+                    var rec = loadRecordById("Index_testTable_c", "test", c);
+                    var filter = Builders<Record>.Filter.Eq("_id", c);
+                    var update = Builders<Record>.Update.Set(s => s.Value, String.Format("{0}#{1}", rec.Value, a));
+                    collectionIndex.UpdateOne(filter, update);
+                }
+                else
+                {
+                    collectionIndex.InsertOne(new Record(c, a));
+                }
+            }
+        }
+
 
         internal void Insert(string table, string dbName, string key, string value)
         {
@@ -111,7 +143,85 @@ namespace DBMSServer.repo
 
             return collection.Find(new BsonDocument()).ToList();
         }
-        
+
+        internal async Task<List<Record>> getLessFilterAsync(IMongoCollection<Record> collection, string compValue)
+        {
+            var res = await collection.Aggregate()
+                .AppendStage<Record>("{ $set : { _KeyInt : { $toInt : '$_id' } } }")
+                .Match(Builders<Record>.Filter.Lt("_KeyInt", Convert.ToInt32(compValue)))
+                .AppendStage<object>("{ $unset : '_KeyInt' }")
+                .As<Record>()
+                .ToListAsync();
+            return res;
+        }
+        internal async Task<List<Record>> getGreaterFilterAsync(IMongoCollection<Record> collection, string compValue)
+        {
+            var res = await collection.Aggregate()
+                .AppendStage<Record>("{ $set : { _KeyInt : { $toInt : '$_id' } } }")
+                .Match(Builders<Record>.Filter.Gt("_KeyInt", Convert.ToInt32(compValue)))
+                .AppendStage<object>("{ $unset : '_KeyInt' }")
+                .As<Record>()
+                .ToListAsync();
+            return res;
+        }
+
+        internal List<Record> loadCollectionCompound(string table, string dbName, Condition condition1, Condition condition2)
+        {
+            database = client.GetDatabase(dbName);
+            var collection = database.GetCollection<Record>(table);
+            FilterDefinition<Record> filter;
+            switch (condition1.comparation)
+            {
+                case "GREATER THAN":
+                    var rez = getGreaterFilterAsync(collection, condition1.comparationValue);
+                    return rez.Result;
+                    break;
+                case "LESSER THAN":
+                    string compare = String.Format(condition1.comparationValue + "#" );
+                    var filter1 = Builders<Record>.Filter.Lt(x => x.Key, condition1.comparationValue);
+                    var filter2 = Builders<Record>.Filter.Eq(x => x.Key, condition1.comparationValue);
+                    return collection.Find(filter1).ToList();
+                    break;
+                case "EQUAL":
+                    if(condition2.comparation == "LESSER THAN")
+                        filter = Builders<Record>.Filter.Lt(x => x.Key, String.Format("{0}#{1}",condition1.comparationValue, condition2.comparationValue));
+                    else
+                    {
+                        filter = Builders<Record>.Filter.Lt(x => x.Key, String.Format("{0}#{1}", condition1.comparationValue, condition2.comparationValue));
+                    }
+                    break;
+                default:
+                    filter = Builders<Record>.Filter.Eq(x => x.Key, condition1.comparationValue);
+                    break;
+            }
+            return collection.Find(filter).ToList();
+        }
+
+        internal List<Record> loadCollection(string table, string dbName, Condition condition)
+        {
+            database = client.GetDatabase(dbName);
+            var collection = database.GetCollection<Record>(table);
+            FilterDefinition<Record> filter;
+            switch (condition.comparation)
+            {
+                case "GREATER THAN":
+                    var rez = getGreaterFilterAsync(collection, condition.comparationValue);
+                    return rez.Result;
+                    break;
+                case "LESSER THAN":
+                    rez = getLessFilterAsync(collection, condition.comparationValue);
+                    return rez.Result;
+                    break;
+                case "EQUAL":
+                    filter = Builders<Record>.Filter.Eq(x => x.Key, condition.comparationValue);
+                    break;
+               default:
+                    filter = Builders<Record>.Filter.Eq(x => x.Key, condition.comparationValue);
+                    break;
+            }
+            return collection.Find(filter).ToList();
+        }
+
         internal Record loadRecordById(string table, string dbName, string id)
         {
             database = client.GetDatabase(dbName);
@@ -139,6 +249,7 @@ namespace DBMSServer.repo
             if(checkExistence(tableName, dbName, id))
             {
                 var filter = Builders<Record>.Filter.Eq("_id", id);
+
                 collection.DeleteOne(filter);
             }
             else
@@ -160,7 +271,7 @@ namespace DBMSServer.repo
                 var values = record.Value.Split("#");
                 if (values[position] == whereClause)
                 {
-                    var filter = Builders<Record>.Filter.Eq("_id", record.Key);
+                    var filter = Builders<Record>.Filter.Lt("_id", record.Key);
                     collection.DeleteOne(filter);
                     nrDelete++;
                 }
@@ -234,18 +345,5 @@ namespace DBMSServer.repo
                 throw new Exception("There is no record with that id");
             }
         }
-    }
-
-    public class Record
-    {
-        public Record(string key, string value)
-        {
-            Key = key;
-            Value = value;
-        }
-
-        [BsonId]
-        public string Key { get; set; }
-        public string Value { get; set; }
     }
 }

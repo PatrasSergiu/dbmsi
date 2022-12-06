@@ -13,11 +13,27 @@ using DBMSServer.Model;
 using DBMSServer.Service;
 using System.Reflection;
 using System.Windows.Input;
+using System.Diagnostics;
 
 namespace TcpServer
 {
     class Program
     {
+        static readonly Stopwatch timer = new Stopwatch();
+        static void testSelect(Service srvDBMS)
+        {
+            timer.Start();
+            //srvDBMS.insertTestRows();
+            Console.WriteLine("250k rows inserted " );
+            timer.Restart();
+            srvDBMS.testSelectIndex();
+            Console.WriteLine("250k rows select with index: " + timer.Elapsed.ToString());
+            timer.Restart();
+            srvDBMS.testSelectScan();
+            Console.WriteLine("250k rows select without index: " + timer.Elapsed.ToString());
+            timer.Stop();
+
+        }
 
         static void Main(string[] args)
         {
@@ -36,7 +52,7 @@ namespace TcpServer
             }
             Service srvDBMS = new Service();
             srvDBMS.readCatalog();
-
+            testSelect(srvDBMS);
             IPEndPoint ep = new IPEndPoint(IPAddress.Loopback, 1234);
             TcpListener listener = new TcpListener(ep);
             listener.Start();
@@ -63,21 +79,9 @@ namespace TcpServer
 
                 // Save the data sent by the client;  
                 Command command = JsonConvert.DeserializeObject<Command>(message); // Deserialize  
-                string[] words = command.SqlQuery.Split(' ');
-                if (words[0] == "GET") {
-                    if (words[1] == "TABLES")
-                    {
-                        List<Command> tables = srvDBMS.getTables(command);
-                        byte[] bytes = System.Text.Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(tables)    );
-                        sender.GetStream().Write(bytes, 0, bytes.Length);
-                    }
-                }
-                else
-                {
-                    string text = srvDBMS.ExecuteCommand(command);
-                    byte[] bytes = System.Text.Encoding.Unicode.GetBytes(text);
-                    sender.GetStream().Write(bytes, 0, bytes.Length); // Send the response
-                }   
+                string text = srvDBMS.ExecuteCommand(command);
+                byte[] bytes = System.Text.Encoding.Unicode.GetBytes(text);
+                sender.GetStream().Write(bytes, 0, bytes.Length); // Send the response
             }
         }
 

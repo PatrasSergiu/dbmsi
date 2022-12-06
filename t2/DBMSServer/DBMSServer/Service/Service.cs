@@ -2,11 +2,13 @@
 using DBMSServer.repo;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
@@ -512,6 +514,11 @@ namespace DBMSServer.Service
             return foreignKeys;
         }
 
+        public void insertTestRows()
+        {
+            repository.testInsert();
+        }
+
         public void insertInTable(Command command)
         {
             XmlDocument catalog = new XmlDocument();
@@ -751,31 +758,6 @@ namespace DBMSServer.Service
             return tables;
         }
 
-        public Dictionary<string, string> createObject(string tableName, string dbName, Record record)
-        {
-            Dictionary<string, string> result = new Dictionary<string, string>();
-
-            var keys = record.Key.Split("$");
-            var values = record.Value.Split("#");
-            int kInd = 0;
-            int vInd = 0;
-            var atribute = getTableAttributes(tableName, dbName);
-            foreach(AtributTabel atr in atribute)
-            {
-                if (atr.IsPrimaryKey)
-                {
-                    result.Add(atr.Name, keys[kInd]);
-                    kInd++;
-                }
-                else
-                {
-                    result.Add(atr.Name, values[vInd]);
-                    vInd++;
-                }
-            }
-
-            return result;
-        }
 
         public void deleteFromTable(Command command, string id)
         {
@@ -842,7 +824,17 @@ namespace DBMSServer.Service
             }
             return primarykeys;
         }
-
+        public bool isEntireKey(string tableName, string dbName, List<string> attrNames)
+        {
+            var keys = getPrimaryKeys(tableName, dbName);
+            if (keys.Count != attrNames.Count) return false;
+            foreach(var key in keys)
+            {
+                if (attrNames.Contains(key) == false)
+                    return false;
+            }
+            return true;
+        }
         public List<AtributTabel> getTableAttributes(string tableName, string dbName)
         {
             var rezAttributes = new List<AtributTabel>();
@@ -861,6 +853,7 @@ namespace DBMSServer.Service
             foreach (XmlElement attribute in tableAttributes)
             {
                 AtributTabel at = new AtributTabel();
+                at.ParentTable = tableName;
                 at.Name = attribute.GetAttribute("attributeName");
                 at.Type = attribute.GetAttribute("attributeType");
                 at.IsUnique = (attribute.GetAttribute("isUnique") == "1") ? true : false;
@@ -873,7 +866,6 @@ namespace DBMSServer.Service
 
             return rezAttributes;
         }
-
 
         public void deleteFromTableWhere(Command command)
         {
@@ -965,7 +957,331 @@ namespace DBMSServer.Service
 
         }
 
+        public Dictionary<string, string> createObject(string tableName, string dbName, Record record)
+        {
+            Dictionary<string, string> result = new Dictionary<string, string>();
 
+            var keys = record.Key.Split("$");
+            var values = record.Value.Split("#");
+            int kInd = 0;
+            int vInd = 0;
+            var atribute = getTableAttributes(tableName, dbName);
+            foreach (AtributTabel atr in atribute)
+            {
+                if (atr.IsPrimaryKey)
+                {
+                    result.Add(atr.Name, keys[kInd]);
+                    kInd++;
+                }
+                else
+                {
+                    result.Add(atr.Name, values[vInd]);
+                    vInd++;
+                }
+            }
+
+            return result;
+        }
+
+        public Dictionary<string, string> createFilteredObject(List<AtributTabel> atributes, string dbName, Record record)
+        {
+            var result = new Dictionary<string, string>();
+
+            var keys = record.Key.Split("$");
+            var values = record.Value.Split("#");
+            int kInd = 0;
+            int vInd = 0;
+            foreach (AtributTabel atr in atributes)
+            {
+                if (atr.IsPrimaryKey)
+                {
+                    result.Add(atr.Name, keys[kInd]);
+                    kInd++;
+                }
+                else
+                {
+                    result.Add(atr.Name, values[vInd]);
+                    vInd++;
+                }
+            }
+            return result;
+        }
+
+        public Dictionary<string, string> createFilteredObject(List<AtributTabel> atributes, string dbName, Record record, List<Condition> conditions)
+        {
+            var result = new Dictionary<string, string>();
+
+            var keys = record.Key.Split("$");
+            var values = record.Value.Split("#");
+            int kInd = 0;
+            int vInd = 0;
+            foreach (AtributTabel atr in atributes)
+            {
+                
+                string value;
+                if (atr.IsPrimaryKey)
+                {
+                    result.Add(atr.Name, keys[kInd]);
+                    value = keys[kInd];
+                    kInd++;
+                }
+                else
+                {
+                    result.Add(atr.Name, values[vInd]);
+                    value = values[vInd];
+                    vInd++;
+                }
+                foreach (Condition cond in conditions)
+                    if (atr.ParentTable == cond.ParentTable && atr.Name == cond.attributeName)
+                    {
+                        //conditia se refera exact la campul acesta
+                        //daca conditia nu este indeplinita, returnam null
+                        if (cond.comparation == "EQUAL" && cond.comparationValue != value)
+                            return null;
+                        if (cond.comparation == "GREATER THAN")
+                        {
+                            try
+                            {
+                                if (Convert.ToInt32(cond.comparationValue) >= Convert.ToInt32(value))
+                                    return null;
+
+                            }
+                            catch(Exception e)
+                            {
+                                throw new Exception("Attribute type mismatch on conditions");
+                            }
+                        }
+                        if (cond.comparation == "LESSER THAN")
+                        {
+                            try
+                            {
+                                if (Convert.ToInt32(cond.comparationValue) <= Convert.ToInt32(value))
+                                    return null;
+
+                            }
+                            catch (Exception e)
+                            {
+                                throw new Exception("Attribute type mismatch on conditions");
+                            }
+                        }
+                    }
+            }
+            return result;
+        }
+
+        public Boolean isPart(List<Dictionary<string, string>> dictList, Dictionary<string, string> dict)
+        {
+            foreach(var d in dictList)
+            {
+                int t = 1;
+                foreach(var k in d.Keys)
+                {
+                    if (dict[k] != d[k]) t = 0; 
+                }
+                if (t == 1)
+                    return true;
+            }
+
+            return false;
+        }
+
+        public List<Dictionary<string, string>> eliminateDuplicates(List<Dictionary<string, string>> l1, List<Dictionary<string, string>> l2)
+        {
+            List<Dictionary<string, string>> result = new List<Dictionary<string, string>>();
+            foreach(var a in l2)
+            {
+                if (isPart(l1, a)) result.Add(a);
+            }
+
+            return result;
+        }
+        public Boolean checkCondition(Dictionary<string, string> d, List<Condition> conditions, string tableName)
+        {
+            foreach(Condition c in conditions)
+            {
+                if (c.ParentTable != tableName) continue;
+                var toBeCompared = d[c.attributeName];
+                try
+                { 
+                    if (c.comparation == "EQUAL" && c.comparationValue != toBeCompared) return false;
+                    if (c.comparation == "LESSER THAN" && Convert.ToInt32(toBeCompared) >= Convert.ToInt32(c.comparationValue)) return false;
+                    if (c.comparation == "GREATER THAN" && Convert.ToInt32(toBeCompared) <= Convert.ToInt32(c.comparationValue)) return false;
+
+                }
+                catch(Exception e)
+                {
+                    throw new Exception("Attribute type mismatch");
+                }
+            }
+
+            return true;
+        }
+        public List<Dictionary<string, string>> checkConditions(List<Dictionary<string, string>> l1, List<Condition> conditions, string tableName)
+        {
+            List<Dictionary<string, string>> result = new List<Dictionary<string, string>>();
+            foreach (var a in l1)
+            {
+                if (checkCondition(a, conditions, tableName)) result.Add(a);
+            }
+
+            return result;
+        }
+        public List<Dictionary<string,string>> loadTable(Command command)
+        {
+            List<Dictionary<string,string>> result = new List<Dictionary<string,string>>();
+
+            var items = repository.loadCollection(command.tableName, command.dbName);
+            foreach(var item in items)
+            {
+                result.Add(createObject(command.tableName, command.dbName, item));
+            }
+
+            return result;
+        }
+
+        public List<Dictionary<string, string>> loadTable(Command table, string dbName, List<Condition> conditions)
+        {
+            List<Dictionary<string, string>> result = new List<Dictionary<string, string>>();
+
+            var items = repository.loadCollection(table.tableName, dbName);
+            foreach (var item in items)
+            {
+                var obj = createFilteredObject(table.AttributesList, dbName, item, conditions);
+                if (obj != null) result.Add(obj);
+            }
+
+            return result;
+        }
+
+        public List<Dictionary<string, string>> loadFilteredSelection(Command command)
+        {
+            List<Dictionary<string, string>> result = new List<Dictionary<string, string>>();
+            List<Command> tableFormSelect = new List<Command>();
+            foreach (AtributTabel atr in command.AttributesList)
+            {
+                var tabel = tableFormSelect.Find(a => a.tableName == atr.ParentTable);
+                if (tabel == null)
+                {
+                    Command comm = new Command();
+                    comm.AttributesList = new List<AtributTabel>();
+                    comm.AttributesList.Add(atr);
+                    comm.tableName = atr.ParentTable;
+                    comm.dbName = command.dbName;
+                    tableFormSelect.Add(comm);
+                }
+                else
+                {
+                    tabel.AttributesList.Add(atr);
+                }
+            }
+            //i have the tables, and the conditions
+            // I need to check for each table which conditions are his, and if they have an index
+            //if they do, we search by the index, if they don't we table scan
+            if(command.Conditions.Count > 0)
+            {
+                //get the indexes for each table, and then iterate through the conditions to find a useful index
+               foreach(var table in tableFormSelect)
+                {
+                    var indexes = getIndexes(table.tableName, command.dbName);
+                    List<Record> allRecords = new List<Record>();
+                    bool searched = false;
+                    foreach(Condition condition in command.Conditions)
+                    {
+                        if (condition.ParentTable != table.tableName) continue;
+                        foreach(var index in indexes)
+                        {
+                            var atrs = index.Split('$');
+                            if (atrs[0] == condition.attributeName && atrs.Length == 1)
+                            {
+                                List<string> check = new List<string>();
+                                check.Add(atrs[0]);
+                                string collection;
+                                if (isEntireKey(table.tableName, command.dbName, check) == true)
+                                {
+                                    collection = String.Format("{0}", table.tableName);
+                                }
+                                else
+                                {
+                                    collection = String.Format("Index_{0}_{1}", table.tableName, index);
+                                }
+
+                                var records = repository.loadCollection(collection, command.dbName, condition);
+                                searched = true;
+                                List<Dictionary<string, string>> aux = new List<Dictionary<string, string>>();
+                                foreach (var record in records)
+                                {
+                                    List<string> splits;
+                                    if (collection == table.tableName)
+                                        splits = record.Key.Split('#').ToList();
+                                    else
+                                    {
+                                        splits = record.Value.Split('#').ToList();
+                                    }
+                                    foreach (string key in splits)
+                                    {
+                                        var originalRecord = repository.loadRecordById(table.tableName, command.dbName, key);
+                                        //if(allRecords.Contains(originalRecord) ==false) allRecords.Add(originalRecord);
+                                        aux.Add(createFilteredObject(table.AttributesList, command.dbName, originalRecord));
+                                    }
+                                }
+                                if (result.Count == 0)
+                                {
+                                    result.AddRange(aux);
+                                }
+                                else
+                                {
+                                    result = eliminateDuplicates(result, aux);
+                                }
+                            }
+                            if (atrs[0] == condition.attributeName && atrs.Length > 1)
+                            {
+                                List<string> check = new List<string>();
+                                check.Add(atrs[0]);
+                                string collection;
+                                if (isEntireKey(table.tableName, command.dbName, check) == true)
+                                {
+                                    collection = String.Format("{0}", table.tableName);
+                                }
+                                else
+                                {
+                                    string mes = "";
+                                    foreach(var atr in atrs)
+                                    {
+                                        mes = (mes == "") ? atr : mes += " " + atr;
+                                    }
+                                    collection = String.Format("Index_{0}_{1}", table.tableName, mes);
+                                }
+                                var found = command.Conditions.FirstOrDefault(e => e.attributeName == atrs[1]);
+                                if (found == null)
+                                    continue;
+                                var records = repository.loadCollectionCompound(collection, command.dbName, condition, found);
+                                searched = true;
+                            }
+                        }
+                    }
+                    if (searched == false)
+                        result = loadTable(table, command.dbName, command.Conditions);
+                    else
+                        result = checkConditions(result, command.Conditions, table.tableName);
+                }
+            }
+            //if there are no conditions, check if any fields have an index and use it, else scan
+            //nevermind, if there are no conditions we should just take the primary table and use only the fields we need
+            else
+            {
+                foreach(var table in tableFormSelect)
+                {
+                    var records = repository.loadCollection(table.tableName, command.dbName);
+                    foreach(var record in records)
+                    {
+                        result.Add(createFilteredObject(table.AttributesList, command.dbName, record));
+                    }
+                }
+            }
+            return result;
+        }
+
+       
 
         public string ExecuteCommand(Command command)
         {
@@ -974,6 +1290,18 @@ namespace DBMSServer.Service
                 string[] words = command.SqlQuery.Split(' ');
                 switch (words[0])
                 {
+                    case "SELECT":
+                        if (words[1] == "*")
+                        {
+                            List<Dictionary<string,string>> selection = loadTable(command).Distinct().ToList();
+                            return cleanMessage(System.Text.Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(selection)));
+                        }
+                        else
+                        {
+                            List<Dictionary<string, string>> selection = loadFilteredSelection(command).Distinct().ToList();
+                            return cleanMessage(System.Text.Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(selection)));
+                        }
+                        break;
                     case "CREATE":
                         if (words[1] == "DATABASE")
                         {
@@ -1017,7 +1345,8 @@ namespace DBMSServer.Service
                     case "GET":
                         if (words[1] == "TABLES")
                         {
-                            getTables(command);
+                            List<Command> tables = getTables(command);
+                            return cleanMessage(System.Text.Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(tables)));
                         }
                         break;
                     case "INSERT":
@@ -1053,5 +1382,55 @@ namespace DBMSServer.Service
             }
         }
 
+       
+
+        private static string cleanMessage(byte[] bytes)
+        {
+            string message = System.Text.Encoding.Unicode.GetString(bytes);
+
+            string messageToPrint = null;
+            foreach (var nullChar in message)
+            {
+                if (nullChar != '\0')
+                {
+                    messageToPrint += nullChar;
+                }
+            }
+            return messageToPrint;
+        }
+
+        internal void testSelectIndex()
+        {
+            var coll = repository.loadCollection("Index_testTable_c", "test", new Condition("c", "GREATER THAN", "80","testTable"));
+        }
+
+        internal void testSelectScan()
+        {
+            List<Condition> conditions = new List<Condition>();
+            Command com = new Command();
+            com.AttributesList = new List<AtributTabel>();
+            AtributTabel atributTabel1 = new AtributTabel();
+            AtributTabel atributTabel2 = new AtributTabel();
+            AtributTabel atributTabel3 = new AtributTabel();
+            atributTabel1.ParentTable = "testTable";
+            atributTabel1.Name = "a";
+            atributTabel1.IsPrimaryKey = true;
+            com.AttributesList.Add(atributTabel1);
+            atributTabel2.ParentTable = "testTable";
+            atributTabel2.Name = "b";
+            atributTabel2.IsPrimaryKey = false;
+            com.AttributesList.Add(atributTabel2);
+            atributTabel3.ParentTable = "testTable";
+            atributTabel3.Name = "c";
+            atributTabel3.IsPrimaryKey = false;
+            com.AttributesList.Add(atributTabel3);
+
+
+            com.dbName = "test";
+            com.tableName = "testTable";
+            conditions.Add(new Condition("c", "GREATER THAN", "80", "testTable"));
+            var coll = loadTable(com, "test", conditions);
+        }
     }
+    
 }

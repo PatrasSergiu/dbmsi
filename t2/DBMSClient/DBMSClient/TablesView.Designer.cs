@@ -37,7 +37,6 @@
             this.viewTableList = new System.Windows.Forms.ListView();
             this.columnHeader1 = new System.Windows.Forms.ColumnHeader();
             this.createIndexButton = new System.Windows.Forms.Button();
-            this.indexComboBox = new System.Windows.Forms.ComboBox();
             this.insertRecordButton = new System.Windows.Forms.Button();
             this.panel1 = new System.Windows.Forms.Panel();
             this.label1 = new System.Windows.Forms.Label();
@@ -49,6 +48,8 @@
             this.deleteWhereTextBox = new System.Windows.Forms.TextBox();
             this.deleteWhereButton = new System.Windows.Forms.Button();
             this.updateButton = new System.Windows.Forms.Button();
+            this.queryButton = new System.Windows.Forms.Button();
+            this.queryLabel = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // dbLabel
@@ -90,7 +91,7 @@
             // 
             // dropTableButton
             // 
-            this.dropTableButton.Location = new System.Drawing.Point(313, 324);
+            this.dropTableButton.Location = new System.Drawing.Point(173, 560);
             this.dropTableButton.Name = "dropTableButton";
             this.dropTableButton.Size = new System.Drawing.Size(101, 58);
             this.dropTableButton.TabIndex = 4;
@@ -100,9 +101,9 @@
             // 
             // createTableButton
             // 
-            this.createTableButton.Location = new System.Drawing.Point(313, 235);
+            this.createTableButton.Location = new System.Drawing.Point(27, 560);
             this.createTableButton.Name = "createTableButton";
-            this.createTableButton.Size = new System.Drawing.Size(101, 53);
+            this.createTableButton.Size = new System.Drawing.Size(99, 56);
             this.createTableButton.TabIndex = 5;
             this.createTableButton.Text = "Create table";
             this.createTableButton.UseVisualStyleBackColor = true;
@@ -112,9 +113,11 @@
             // 
             this.viewTableList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.columnHeader1});
-            this.viewTableList.Location = new System.Drawing.Point(478, 150);
+            this.viewTableList.FullRowSelect = true;
+            this.viewTableList.GridLines = true;
+            this.viewTableList.Location = new System.Drawing.Point(357, 126);
             this.viewTableList.Name = "viewTableList";
-            this.viewTableList.Size = new System.Drawing.Size(606, 406);
+            this.viewTableList.Size = new System.Drawing.Size(625, 406);
             this.viewTableList.TabIndex = 6;
             this.viewTableList.UseCompatibleStateImageBehavior = false;
             this.viewTableList.View = System.Windows.Forms.View.Details;
@@ -122,7 +125,7 @@
             // 
             // createIndexButton
             // 
-            this.createIndexButton.Location = new System.Drawing.Point(618, 97);
+            this.createIndexButton.Location = new System.Drawing.Point(876, 572);
             this.createIndexButton.Name = "createIndexButton";
             this.createIndexButton.Size = new System.Drawing.Size(106, 32);
             this.createIndexButton.TabIndex = 7;
@@ -130,19 +133,11 @@
             this.createIndexButton.UseVisualStyleBackColor = true;
             this.createIndexButton.Click += new System.EventHandler(this.createIndexButton_Click);
             // 
-            // indexComboBox
-            // 
-            this.indexComboBox.FormattingEnabled = true;
-            this.indexComboBox.Location = new System.Drawing.Point(478, 102);
-            this.indexComboBox.Name = "indexComboBox";
-            this.indexComboBox.Size = new System.Drawing.Size(121, 24);
-            this.indexComboBox.TabIndex = 8;
-            // 
             // insertRecordButton
             // 
-            this.insertRecordButton.Location = new System.Drawing.Point(1100, 587);
+            this.insertRecordButton.Location = new System.Drawing.Point(1100, 581);
             this.insertRecordButton.Name = "insertRecordButton";
-            this.insertRecordButton.Size = new System.Drawing.Size(82, 34);
+            this.insertRecordButton.Size = new System.Drawing.Size(82, 37);
             this.insertRecordButton.TabIndex = 9;
             this.insertRecordButton.Text = "Insert";
             this.insertRecordButton.UseVisualStyleBackColor = true;
@@ -158,7 +153,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(478, 571);
+            this.label1.Location = new System.Drawing.Point(357, 549);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(90, 16);
             this.label1.TabIndex = 11;
@@ -166,14 +161,14 @@
             // 
             // deleteTextBox
             // 
-            this.deleteTextBox.Location = new System.Drawing.Point(478, 593);
+            this.deleteTextBox.Location = new System.Drawing.Point(357, 581);
             this.deleteTextBox.Name = "deleteTextBox";
             this.deleteTextBox.Size = new System.Drawing.Size(100, 23);
             this.deleteTextBox.TabIndex = 12;
             // 
             // deleteButton
             // 
-            this.deleteButton.Location = new System.Drawing.Point(584, 574);
+            this.deleteButton.Location = new System.Drawing.Point(463, 559);
             this.deleteButton.Name = "deleteButton";
             this.deleteButton.Size = new System.Drawing.Size(79, 42);
             this.deleteButton.TabIndex = 13;
@@ -185,7 +180,7 @@
             // 
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("Segoe UI Variable Text", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.label3.Location = new System.Drawing.Point(684, 560);
+            this.label3.Location = new System.Drawing.Point(576, 549);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(101, 21);
             this.label3.TabIndex = 14;
@@ -194,7 +189,7 @@
             // deleteComboBox
             // 
             this.deleteComboBox.FormattingEnabled = true;
-            this.deleteComboBox.Location = new System.Drawing.Point(791, 563);
+            this.deleteComboBox.Location = new System.Drawing.Point(702, 550);
             this.deleteComboBox.Name = "deleteComboBox";
             this.deleteComboBox.Size = new System.Drawing.Size(61, 24);
             this.deleteComboBox.TabIndex = 15;
@@ -203,7 +198,7 @@
             // 
             this.label4.AutoSize = true;
             this.label4.Font = new System.Drawing.Font("Segoe UI Variable Text", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.label4.Location = new System.Drawing.Point(684, 592);
+            this.label4.Location = new System.Drawing.Point(576, 577);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(21, 21);
             this.label4.TabIndex = 16;
@@ -211,16 +206,16 @@
             // 
             // deleteWhereTextBox
             // 
-            this.deleteWhereTextBox.Location = new System.Drawing.Point(711, 593);
+            this.deleteWhereTextBox.Location = new System.Drawing.Point(603, 577);
             this.deleteWhereTextBox.Name = "deleteWhereTextBox";
             this.deleteWhereTextBox.Size = new System.Drawing.Size(74, 23);
             this.deleteWhereTextBox.TabIndex = 17;
             // 
             // deleteWhereButton
             // 
-            this.deleteWhereButton.Location = new System.Drawing.Point(809, 593);
+            this.deleteWhereButton.Location = new System.Drawing.Point(683, 581);
             this.deleteWhereButton.Name = "deleteWhereButton";
-            this.deleteWhereButton.Size = new System.Drawing.Size(75, 23);
+            this.deleteWhereButton.Size = new System.Drawing.Size(80, 34);
             this.deleteWhereButton.TabIndex = 18;
             this.deleteWhereButton.Text = "Confirm";
             this.deleteWhereButton.UseVisualStyleBackColor = true;
@@ -228,7 +223,7 @@
             // 
             // updateButton
             // 
-            this.updateButton.Location = new System.Drawing.Point(1307, 582);
+            this.updateButton.Location = new System.Drawing.Point(1307, 581);
             this.updateButton.Name = "updateButton";
             this.updateButton.Size = new System.Drawing.Size(82, 34);
             this.updateButton.TabIndex = 19;
@@ -236,11 +231,34 @@
             this.updateButton.UseVisualStyleBackColor = true;
             this.updateButton.Click += new System.EventHandler(this.updateButton_Click);
             // 
+            // queryButton
+            // 
+            this.queryButton.Location = new System.Drawing.Point(576, 52);
+            this.queryButton.Name = "queryButton";
+            this.queryButton.Size = new System.Drawing.Size(101, 28);
+            this.queryButton.TabIndex = 20;
+            this.queryButton.Text = "Custom Query";
+            this.queryButton.UseVisualStyleBackColor = true;
+            this.queryButton.Click += new System.EventHandler(this.queryButton_Click);
+            // 
+            // queryLabel
+            // 
+            this.queryLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.queryLabel.Location = new System.Drawing.Point(357, 97);
+            this.queryLabel.Name = "queryLabel";
+            this.queryLabel.Size = new System.Drawing.Size(625, 26);
+            this.queryLabel.TabIndex = 21;
+            this.queryLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
             // TablesView
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1438, 639);
+            this.ClientSize = new System.Drawing.Size(1284, 639);
+            this.Controls.Add(this.queryLabel);
+            this.Controls.Add(this.queryButton);
             this.Controls.Add(this.updateButton);
             this.Controls.Add(this.deleteWhereButton);
             this.Controls.Add(this.deleteWhereTextBox);
@@ -252,7 +270,6 @@
             this.Controls.Add(this.label1);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.insertRecordButton);
-            this.Controls.Add(this.indexComboBox);
             this.Controls.Add(this.createIndexButton);
             this.Controls.Add(this.viewTableList);
             this.Controls.Add(this.createTableButton);
@@ -279,7 +296,6 @@
         private ListView viewTableList;
         private ColumnHeader columnHeader1;
         private Button createIndexButton;
-        private ComboBox indexComboBox;
         private Button insertRecordButton;
         private Panel panel1;
         private Label label1;
@@ -291,5 +307,7 @@
         private TextBox deleteWhereTextBox;
         private Button deleteWhereButton;
         private Button updateButton;
+        private Button queryButton;
+        public Label queryLabel;
     }
 }

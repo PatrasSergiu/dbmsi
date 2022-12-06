@@ -17,6 +17,7 @@ using Label = System.Windows.Forms.Label;
 using System.Reflection;
 using System.Data.Common;
 using static System.ComponentModel.Design.ObjectSelectorEditor;
+using DBMSClient.QueryCreation;
 
 namespace DBMSClient
 {
@@ -98,7 +99,7 @@ namespace DBMSClient
 
         private void viewTableList_SelectedIndexChanged(object sender, EventArgs e)
         {
-
+            
         }
 
         private void tablesListView_SelectedIndexChanged(object sender, EventArgs e)
@@ -106,8 +107,8 @@ namespace DBMSClient
             if (tablesListView.SelectedItems.Count > 0)
             {
                 viewTableList.Columns.Clear();
-                indexComboBox.Items.Clear();
                 deleteComboBox.Items.Clear();
+                viewTableList.Items.Clear();
                 ListViewItem item = tablesListView.SelectedItems[0];
                 Command command = (Command)item.Tag;
                 selectedTable = command;
@@ -123,7 +124,6 @@ namespace DBMSClient
                 foreach (AtributTabel atr in command.AttributesList)
                 {
                     viewTableList.Columns.Add(atr.Name);
-                    indexComboBox.Items.Add(atr.Name);
                     TextBox a = new TextBox();
                     Label l = new Label();
                     l.Text = atr.Name;
@@ -152,6 +152,22 @@ namespace DBMSClient
                 {
                     column.Width = viewTableList.Width / viewTableList.Columns.Count;
                 }
+                command.SqlQuery = "SELECT *";
+                byte[] bytes = Extras.sendMessage(System.Text.Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(command)));
+
+                List<Dictionary<string,string>> items = new List<Dictionary<string, string>>();
+                string message = Extras.cleanMessage(bytes);
+                items = JsonConvert.DeserializeObject<IEnumerable<Dictionary<string,string>>>(message).ToList();
+                foreach(var it in items)
+                {
+                    List<string> row = new List<string>();
+                    foreach (var key in it.Keys)
+                    {
+                        row.Add(it[key]);
+                    }
+                    var listViewItem = new ListViewItem(row.ToArray());
+                    viewTableList.Items.Add(listViewItem);
+                }
             }
             else
             {
@@ -161,38 +177,16 @@ namespace DBMSClient
 
         private void viewTableList_SelectedIndexChanged_1(object sender, EventArgs e)
         {
-
+            //if (viewTableList.SelectedItems.Count > 0)
+            //{
+            //    ListViewItem selectedItem = viewTableList.SelectedItems[0];
+            //    for (int i = 0; i < textBoxes.Count; i++)
+            //    {
+            //        //parcurg fiecare textbox
+            //        textBoxes[i].Text = selectedItem.SubItems[i].Text;
+            //    }
+            //}
         }
-
-        //private void createIndexButton_Click(object sender, EventArgs e)
-        //{
-
-        //    if (indexComboBox.SelectedIndex == -1)
-        //    {
-        //        MessageBox.Show("Please choose a field to create an index for");
-        //    }
-        //    else
-        //    {
-        //        string selected = indexComboBox.SelectedItem.ToString();
-        //        Command command = new Command();
-        //        command = selectedTable;
-        //        command.SqlQuery = String.Format("CREATE INDEX " + selected);
-        //        byte[] bytes = Extras.sendMessage(System.Text.Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(command)));
-        //        string response = Extras.cleanMessage(bytes);
-        //        if (response == "OK")
-        //        {
-        //            foreach (TextBox tb in textBoxes)
-        //            {
-        //                tb.Clear();
-        //            }
-        //            MessageBox.Show("Creeat cu succes");
-        //        }
-        //        else
-        //        {
-        //            MessageBox.Show("Exista deja un index cu acest nume sau a aparut o eroare");
-        //        }
-        //    }
-        //}
 
         private void createIndexButton_Click(object sender, EventArgs e)
         {
@@ -267,10 +261,14 @@ namespace DBMSClient
             if (response == "OK")
             {
                 MessageBox.Show("Inserted succesfully");
+                List<string> row = new List<string>();
                 foreach (TextBox tb in textBoxes)
                 {
+                    row.Add(tb.Text);
                     tb.Clear();
                 }
+                var listViewItem = new ListViewItem(row.ToArray());
+                viewTableList.Items.Add(listViewItem);
             }
             else
             {
@@ -373,6 +371,53 @@ namespace DBMSClient
             {
                 MessageBox.Show(response);
             }
+        }
+
+        private void queryButton_Click(object sender, EventArgs e)
+        {
+            SelectScreen selectScreen = new SelectScreen(tables.ToList(), this);
+            selectScreen.ShowDialog();
+            Command command = new Command();
+            command.SqlQuery = selectScreen.queryLabel.Text;
+            command.AttributesList = selectScreen.selectedAttributes;
+            command.Conditions = selectScreen.conditions;
+            command.dbName = selectedTable.dbName;
+            try
+            {
+                byte[] bytes = Extras.sendMessage(System.Text.Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(command)));
+
+                List<Dictionary<string, string>> items = new List<Dictionary<string, string>>();
+                string message = Extras.cleanMessage(bytes);
+                items = JsonConvert.DeserializeObject<IEnumerable<Dictionary<string, string>>>(message).ToList();
+                viewTableList.Columns.Clear();
+                viewTableList.Items.Clear();
+                foreach (var atr in command.AttributesList)
+                {
+                    viewTableList.Columns.Add(atr.Name);
+                }
+
+                foreach (ColumnHeader column in viewTableList.Columns)
+                {
+                    column.Width = viewTableList.Width / viewTableList.Columns.Count;
+                }
+
+                foreach (var it in items)
+                {
+                    List<string> row = new List<string>();
+                    foreach (var key in it.Keys)
+                    {
+                        row.Add(it[key]);
+                    }
+                    var listViewItem = new ListViewItem(row.ToArray());
+                    viewTableList.Items.Add(listViewItem);
+                }
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message, "oops", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            
+
         }
     }
 }

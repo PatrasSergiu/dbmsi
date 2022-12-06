@@ -12,7 +12,9 @@ namespace DBMSServer.Model
         public List<AtributTabel>? AttributesList { get; set; }
         public string? dbName { get; set; }
         public string? tableName { get; set; }
-        public Dictionary<string, string> Values { get; set; }
+        public List<Condition>? Conditions { get; set; }
+
+        public Dictionary<string, string>? Values { get; set; }
 
     }
 }

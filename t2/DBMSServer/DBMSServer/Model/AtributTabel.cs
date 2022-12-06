@@ -9,6 +9,7 @@ namespace DBMSServer.Model
     class AtributTabel
     {
         public string Type { get; set; }
+        public string ParentTable { get; set; }
         public string Name { get; set; }
         public bool IsUnique { get; set; }
         public bool IsPrimaryKey { get; set; }
