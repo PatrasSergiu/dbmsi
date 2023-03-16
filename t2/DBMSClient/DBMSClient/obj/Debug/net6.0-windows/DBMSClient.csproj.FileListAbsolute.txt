@@ -25,3 +25,4 @@ C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSClient\DBMSClient\obj\Debug\net6.0-
 C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSClient\DBMSClient\obj\Debug\net6.0-windows\DBMSClient.QueryCreation.QueryItems.resources
 C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSClient\DBMSClient\obj\Debug\net6.0-windows\DBMSClient.QueryCreation.SelectScreen.resources
 C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSClient\DBMSClient\obj\Debug\net6.0-windows\DBMSClient.QueryCreation.AddConditionScreen.resources
+C:\Users\patra\Documents\GitHub\dbmsi\t2\DBMSClient\DBMSClient\obj\Debug\net6.0-windows\DBMSClient.QueryCreation.Join.resources

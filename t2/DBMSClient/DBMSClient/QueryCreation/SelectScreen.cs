@@ -5,6 +5,8 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.ExceptionServices;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -15,15 +17,19 @@ namespace DBMSClient.QueryCreation
     {
 
         List<Command> allTables;
+        Command tableToBeJoin;
         TablesView _parentForm;
         public List<AtributTabel> selectedAttributes = new List<AtributTabel>();
         List<Command> tableFormSelect = new List<Command>();
 
         public List<Condition> conditions = new List<Condition>();
+        public List<TableJoin> joins = new List<TableJoin>();
 
         string conditionText = "";
         string itemsQuery = "";
         string fromTable = "";
+        string finalQuery = "";
+        Boolean first = true;
         public SelectScreen(List<Command> tables, TablesView tablesView)
         {
             InitializeComponent();
@@ -33,22 +39,39 @@ namespace DBMSClient.QueryCreation
 
         private void itemsButton_Click(object sender, EventArgs e)
         {
-            QueryItems queryItems = new QueryItems(allTables.ToList(), this);
+            QueryItems queryItems;
+            List<string> tables = new List<string>();
+            if (selectedAttributes.Count > 0)
+            {
+                
+                foreach(var atr in tableToBeJoin.AttributesList)
+                {
+                    if(atr.FKeys != null)
+                    {
+                        foreach(var key in atr.FKeys)
+                        {
+                            if (tables.Contains(key.Key) == false ) tables.Add(key.Key);
+                        }
+                    }
+                }
+                //got all the tables, now its time to get then command list
+
+                queryItems = new QueryItems(allTables.FindAll(e => tables.Contains(e.tableName)).ToList(), this);
+            }
+            else
+            {
+               queryItems = new QueryItems(allTables.ToList(), this);
+            }
             queryItems.ShowDialog();
             if(queryItems.selectedTableName != null)
             {
                 var items = queryItems.selectedAttributes;
+                if (selectedAttributes.Count > 0) first = false;
                 selectedAttributes.AddRange(items);
-                Command found = allTables.Find(e => e.tableName == queryItems.selectedTableName);
-                allTables.RemoveAll(e => e.tableName == queryItems.selectedTableName);
+                var auxTableToBeJoin = allTables.Find(e => e.tableName == queryItems.selectedTableName);
                 queryItems.Dispose();
                 
                 itemsQuery = "";
-
-                if (items.Count == found.AttributesList.Count)
-                    itemsQuery = "*";
-                else
-                {
                     for (int i = 0; i < items.Count; i++)
                     {
                         itemsQuery += items[i].Name;
@@ -57,9 +80,38 @@ namespace DBMSClient.QueryCreation
                             itemsQuery += ",";
                         }
                     }
+                
+                fromTable = auxTableToBeJoin.tableName;
+                if (first)
+                {
+                    queryLabel.Text = "SELECT " + itemsQuery + " FROM " + fromTable;
                 }
-                fromTable = found.tableName;
-                queryLabel.Text = "SELECT " + itemsQuery + " FROM " + fromTable;
+                else
+                {
+                    queryLabel.Text += " JOIN " + queryItems.selectedTableName;
+                    List<AtributTabel> joinCandidates = new List<AtributTabel>();
+                    foreach (var atr in tableToBeJoin.AttributesList)
+                    {
+                        if (atr.FKeys != null)
+                        {
+                            foreach (var key in atr.FKeys)
+                            {
+                                if (key.Key == items[0].ParentTable) joinCandidates.Add(atr);
+                            }
+                        }
+                    }
+
+                    Join join = new Join(joinCandidates);
+                    join.ShowDialog();
+                    AtributTabel joinAttribute = join.atributTabel;
+                    TableJoin tableJoin = new TableJoin();
+                    tableJoin.initialTable = tableToBeJoin.tableName;
+                    tableJoin.joinAttribute = joinAttribute.Name;
+                    tableJoin.joinTable = fromTable;
+                    this.joins.Add(tableJoin);
+                }
+                tableToBeJoin = allTables.Find(e => e.tableName == queryItems.selectedTableName);
+                allTables.RemoveAll(e => e.tableName == queryItems.selectedTableName);
             }
         }
 

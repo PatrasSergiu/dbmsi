@@ -52,7 +52,7 @@ namespace TcpServer
             }
             Service srvDBMS = new Service();
             srvDBMS.readCatalog();
-            testSelect(srvDBMS);
+            //testSelect(srvDBMS);
             IPEndPoint ep = new IPEndPoint(IPAddress.Loopback, 1234);
             TcpListener listener = new TcpListener(ep);
             listener.Start();

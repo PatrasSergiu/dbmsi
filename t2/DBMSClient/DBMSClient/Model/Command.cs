@@ -15,6 +15,7 @@ namespace DBMSClient.Model
         public string? tableName { get; set; }
         public Dictionary<string, string>? Values { get; set; }
         public List<Condition>? Conditions { get; set; }
+        public List<TableJoin>? joins { get; set; }
 
     }
 }

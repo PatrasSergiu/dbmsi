@@ -8,6 +8,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Linq;
+using System.Runtime.Intrinsics.X86;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
@@ -850,6 +851,8 @@ namespace DBMSServer.Service
             XmlNodeList tableAttributes = targetTable.SelectSingleNode("Structure").ChildNodes;
             List<string> pkeys = getPrimaryKeys(tableName, dbName);
 
+            List<ForeignKey> fkeys = getForeignKeys(tableName, dbName);
+
             foreach (XmlElement attribute in tableAttributes)
             {
                 AtributTabel at = new AtributTabel();
@@ -862,6 +865,19 @@ namespace DBMSServer.Service
                     at.IsPrimaryKey = true;
                 }
                 rezAttributes.Add(at);
+
+                foreach(var fk in fkeys)
+                {
+                    if(fk.attribute == at.Name)
+                    {
+                        if(at.FKeys == null)
+                        {
+                            at.FKeys = new Dictionary<string, string>();
+                        }
+                        at.FKeys.Add(fk.referencedTable, fk.referencedAttribute);
+                    }
+                }
+
             }
 
             return rezAttributes;
@@ -1153,6 +1169,95 @@ namespace DBMSServer.Service
             return result;
         }
 
+        public List<Dictionary<string, string>> loadFilteredTable(Command table, List<Condition> conditions, string tableName, string dbName)
+        {
+            List<Dictionary<string, string>> result = new List<Dictionary<string, string>>();
+                var indexes = getIndexes(table.tableName,dbName);
+                List<Record> allRecords = new List<Record>();
+                bool searched = false;
+                foreach (Condition condition in conditions)
+                {
+                    if (condition.ParentTable != table.tableName) continue;
+                    foreach (var index in indexes)
+                    {
+                        var atrs = index.Split('$');
+                        if (atrs[0] == condition.attributeName && atrs.Length == 1)
+                        {
+                            List<string> check = new List<string>();
+                            check.Add(atrs[0]);
+                            string collection;
+                            if (isEntireKey(table.tableName, dbName, check) == true)
+                            {
+                                collection = String.Format("{0}", table.tableName);
+                            }
+                            else
+                            {
+                                collection = String.Format("Index_{0}_{1}", table.tableName, index);
+                            }
+
+                            var records = repository.loadCollection(collection, dbName, condition);
+                            searched = true;
+                            List<Dictionary<string, string>> aux = new List<Dictionary<string, string>>();
+                            foreach (var record in records)
+                            {
+                                List<string> splits;
+                                if (collection == table.tableName)
+                                    splits = record.Key.Split('#').ToList();
+                                else
+                                {
+                                    splits = record.Value.Split('#').ToList();
+                                }
+                                foreach (string key in splits)
+                                {
+                                    var originalRecord = repository.loadRecordById(table.tableName,dbName, key);
+                                    //if(allRecords.Contains(originalRecord) ==false) allRecords.Add(originalRecord);
+                                    aux.Add(createFilteredObject(table.AttributesList, dbName, originalRecord));
+                                }
+                            }
+                            if (result.Count == 0)
+                            {
+                                result.AddRange(aux);
+                            }
+                            else
+                            {
+                                result = eliminateDuplicates(result, aux);
+                            }
+                        }
+                        if (atrs[0] == condition.attributeName && atrs.Length > 1)
+                        {
+                            List<string> check = new List<string>();
+                            check.Add(atrs[0]);
+                            string collection;
+                            if (isEntireKey(table.tableName, dbName, check) == true)
+                            {
+                                collection = String.Format("{0}", table.tableName);
+                            }
+                            else
+                            {
+                                string mes = "";
+                                foreach (var atr in atrs)
+                                {
+                                    mes = (mes == "") ? atr : mes += " " + atr;
+                                }
+                                collection = String.Format("Index_{0}_{1}", table.tableName, mes);
+                            }
+                            var found = conditions.FirstOrDefault(e => e.attributeName == atrs[1]);
+                            if (found == null)
+                                continue;
+                            var records = repository.loadCollectionCompound(collection, dbName, condition, found);
+                            searched = true;
+                        }
+                    }
+                
+            }
+            if (searched == false)
+                result = loadTable(table, dbName, conditions);
+            else
+                result = checkConditions(result, conditions, table.tableName);
+
+            return result;
+        }
+
         public List<Dictionary<string, string>> loadFilteredSelection(Command command)
         {
             List<Dictionary<string, string>> result = new List<Dictionary<string, string>>();
@@ -1180,108 +1285,242 @@ namespace DBMSServer.Service
             if(command.Conditions.Count > 0)
             {
                 //get the indexes for each table, and then iterate through the conditions to find a useful index
-               foreach(var table in tableFormSelect)
+                for (int tablePosition = 0; tablePosition < tableFormSelect.Count; tablePosition++)
                 {
-                    var indexes = getIndexes(table.tableName, command.dbName);
-                    List<Record> allRecords = new List<Record>();
-                    bool searched = false;
-                    foreach(Condition condition in command.Conditions)
+                    List<Dictionary<string, string>> auxResult = loadFilteredTable(tableFormSelect[tablePosition], command.Conditions, tableFormSelect[tablePosition].tableName, command.dbName);
+                    if(tablePosition > 0)
                     {
-                        if (condition.ParentTable != table.tableName) continue;
-                        foreach(var index in indexes)
-                        {
-                            var atrs = index.Split('$');
-                            if (atrs[0] == condition.attributeName && atrs.Length == 1)
-                            {
-                                List<string> check = new List<string>();
-                                check.Add(atrs[0]);
-                                string collection;
-                                if (isEntireKey(table.tableName, command.dbName, check) == true)
-                                {
-                                    collection = String.Format("{0}", table.tableName);
-                                }
-                                else
-                                {
-                                    collection = String.Format("Index_{0}_{1}", table.tableName, index);
-                                }
-
-                                var records = repository.loadCollection(collection, command.dbName, condition);
-                                searched = true;
-                                List<Dictionary<string, string>> aux = new List<Dictionary<string, string>>();
-                                foreach (var record in records)
-                                {
-                                    List<string> splits;
-                                    if (collection == table.tableName)
-                                        splits = record.Key.Split('#').ToList();
-                                    else
-                                    {
-                                        splits = record.Value.Split('#').ToList();
-                                    }
-                                    foreach (string key in splits)
-                                    {
-                                        var originalRecord = repository.loadRecordById(table.tableName, command.dbName, key);
-                                        //if(allRecords.Contains(originalRecord) ==false) allRecords.Add(originalRecord);
-                                        aux.Add(createFilteredObject(table.AttributesList, command.dbName, originalRecord));
-                                    }
-                                }
-                                if (result.Count == 0)
-                                {
-                                    result.AddRange(aux);
-                                }
-                                else
-                                {
-                                    result = eliminateDuplicates(result, aux);
-                                }
-                            }
-                            if (atrs[0] == condition.attributeName && atrs.Length > 1)
-                            {
-                                List<string> check = new List<string>();
-                                check.Add(atrs[0]);
-                                string collection;
-                                if (isEntireKey(table.tableName, command.dbName, check) == true)
-                                {
-                                    collection = String.Format("{0}", table.tableName);
-                                }
-                                else
-                                {
-                                    string mes = "";
-                                    foreach(var atr in atrs)
-                                    {
-                                        mes = (mes == "") ? atr : mes += " " + atr;
-                                    }
-                                    collection = String.Format("Index_{0}_{1}", table.tableName, mes);
-                                }
-                                var found = command.Conditions.FirstOrDefault(e => e.attributeName == atrs[1]);
-                                if (found == null)
-                                    continue;
-                                var records = repository.loadCollectionCompound(collection, command.dbName, condition, found);
-                                searched = true;
-                            }
-                        }
+                        TableJoin join = command.Joins[tablePosition - 1];
+                        //auxResult = HashJoin(result, auxResult, join);
+                        auxResult = mergeSortJoin(result, auxResult, join);
                     }
-                    if (searched == false)
-                        result = loadTable(table, command.dbName, command.Conditions);
-                    else
-                        result = checkConditions(result, command.Conditions, table.tableName);
+                    result = auxResult;
                 }
             }
             //if there are no conditions, check if any fields have an index and use it, else scan
             //nevermind, if there are no conditions we should just take the primary table and use only the fields we need
             else
             {
-                foreach(var table in tableFormSelect)
+
+                for (int tablePosition = 0; tablePosition < tableFormSelect.Count; tablePosition++)
                 {
+                    var table = tableFormSelect[tablePosition];
                     var records = repository.loadCollection(table.tableName, command.dbName);
-                    foreach(var record in records)
+                    List<Dictionary<string, string>> auxResult = new List<Dictionary<string, string>>();
+
+                    foreach (var record in records)
                     {
-                        result.Add(createFilteredObject(table.AttributesList, command.dbName, record));
+                        auxResult.Add(createFilteredObject(table.AttributesList, command.dbName, record));
                     }
+                    if (tablePosition > 0)
+                    {
+                        TableJoin join = command.Joins[tablePosition - 1];
+                        auxResult = HashJoin(result, auxResult, join);
+                        //auxResult = mergeSortJoin(result, auxResult, join);
+                    }
+                    result = auxResult;
                 }
             }
             return result;
         }
 
-       
+
+        Dictionary<string, string> mergeDictionary(Dictionary<string, string> d1, Dictionary<string, string> d2)
+        {
+            Dictionary<string, string> result = new Dictionary<string, string>();
+
+            foreach(var d in d1)
+            {
+                if (result.ContainsKey(d.Key) == false)
+                    result.Add(d.Key, d.Value);
+            }
+            foreach(var d in d2)
+            {
+                if (result.ContainsKey(d.Key) == false)
+                    result.Add(d.Key, d.Value);
+            }
+
+            return result;
+        }
+
+        List<Dictionary<string, string>> mergeSortJoin(List<Dictionary<string, string>> table1, List<Dictionary<string, string>> table2, TableJoin join)
+        {
+            List<Dictionary<string, string>> result = new List<Dictionary<string, string>>();
+
+            int index1 = 0, index2 = 0;
+            int mark = -1;
+
+            table1 = table1.OrderBy(dict => dict[join.joinAttribute]).ToList();
+            table2 = table2.OrderBy(dict => dict[join.joinAttribute]).ToList();
+
+            var joinAttr = join.joinAttribute;
+
+            while ( index1 < table1.Count || index2 < table2.Count)
+            {
+                if(mark == -1)
+                {
+                    while (index1 < table1.Count && index2 < table2.Count && table1[index1][join.joinAttribute].CompareTo(table2[index2][join.joinAttribute]) < 0) index1++;
+                    while (index1 < table1.Count && index2 < table2.Count && table1[index1][join.joinAttribute].CompareTo(table2[index2][join.joinAttribute]) > 0) index2++;
+
+                    mark = index2;
+                }
+                if(index1 < table1.Count && index2 < table2.Count && table1[index1][join.joinAttribute].CompareTo(table2[index2][join.joinAttribute]) == 0)
+                {
+                    var fTable = table1[index1];
+                    var sTable = table2[index2];
+                    result.Add(mergeDictionary(fTable, sTable));
+                    index2++;
+                }
+                else
+                {
+                    if (index1 > table1.Count) index2++;
+                    else index2 = mark;
+                    index1++;
+                    mark = -1;
+                }
+            }
+
+            return result;
+        }
+
+        List<Dictionary<string, string>> HashJoin(List<Dictionary<string, string>> table1, List<Dictionary<string, string>> table2, TableJoin join)
+        {
+            List<Dictionary<string, string>> result = new List<Dictionary<string, string>>();
+
+            //build phase
+            //add all table1 to hash map
+            Dictionary<string, List<Dictionary<string, string>>> hashmap = new Dictionary<string, List<Dictionary<string, string>>>();
+            foreach(Dictionary<string, string> d in table1)
+            {
+                var hashCode = d[join.joinAttribute].GetHashCode().ToString();
+                if (hashmap.ContainsKey(hashCode) == false)
+                {
+                    hashmap.Add(hashCode, new List<Dictionary<string, string>>());
+                    hashmap[hashCode].Add(d);
+                }
+                else
+                {
+                    hashmap[hashCode].Add(d);
+                }
+            }
+
+            //probe phase
+            //iterate table2 and check for existing hashes
+
+            foreach(Dictionary<string, string> d in table2)
+            {
+                var hashCode = d[join.joinAttribute].GetHashCode().ToString();
+                if (hashmap.ContainsKey(hashCode) == false)
+                {
+                    continue;
+                }
+                else
+                {
+                    var relevantRecords = hashmap[hashCode];
+                    foreach(var record in relevantRecords)
+                    {
+                        if (record[join.joinAttribute] == d[join.joinAttribute])
+                            result.Add(mergeDictionary(record, d));
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        List<Dictionary<string, string>> NestedJoin(List<Dictionary<string, string>> table1, Command table2, TableJoin join, List<Condition>? conditions)
+        {
+            var result = new List<Dictionary<string, string>>();
+
+            foreach(Dictionary<string, string> d in table1)
+            {
+                var list = new List<string>();
+                list.Add(join.joinAttribute);
+                var searchedRecord = repository.loadRecordById(table2.tableName, table2.dbName, d[join.joinAttribute]);
+                if(searchedRecord != null)
+                {
+                    if (conditions == null)
+                    {
+                        conditions = new List<Condition>();
+                    }
+                    var obj = createFilteredObject(table2.AttributesList, table2.dbName, searchedRecord, conditions);
+                    if (obj != null) result.Add(mergeDictionary(d, obj));
+                }
+            }
+
+            return result;
+        }
+
+        List<Dictionary<string, string>> IndexNestedLoop(Command command)
+        {
+            List<Dictionary<string, string>> result = new List<Dictionary<string, string>>();
+            List<Command> tableFormSelect = new List<Command>();
+            foreach (AtributTabel atr in command.AttributesList)
+            {
+                var tabel = tableFormSelect.Find(a => a.tableName == atr.ParentTable);
+                if (tabel == null)
+                {
+                    Command comm = new Command();
+                    comm.AttributesList = new List<AtributTabel>();
+                    comm.AttributesList.Add(atr);
+                    comm.tableName = atr.ParentTable;
+                    comm.dbName = command.dbName;
+                    tableFormSelect.Add(comm);
+                }
+                else
+                {
+                    tabel.AttributesList.Add(atr);
+                }
+            }
+            List<Dictionary<string, string>> auxResult;
+            if (command.Conditions.Count > 0)
+            {
+                //get the indexes for each table, and then iterate through the conditions to find a useful index
+                for (int tablePosition = 0; tablePosition < tableFormSelect.Count; tablePosition++)
+                {
+                    if (tablePosition > 0)
+                    {
+                        TableJoin join = command.Joins[tablePosition - 1];
+                        auxResult = NestedJoin(result, tableFormSelect[tablePosition], join, command.Conditions);
+                    }
+                    else
+                    {
+                        auxResult = loadFilteredTable(tableFormSelect[tablePosition], command.Conditions, tableFormSelect[tablePosition].tableName, command.dbName);
+                    }
+                    result = auxResult;
+                }
+            }
+            //if there are no conditions, check if any fields have an index and use it, else scan
+            //nevermind, if there are no conditions we should just take the primary table and use only the fields we need
+            else
+            {
+
+                for (int tablePosition = 0; tablePosition < tableFormSelect.Count; tablePosition++)
+                {
+                    var table = tableFormSelect[tablePosition];
+                    auxResult = new List<Dictionary<string, string>>();
+
+                    if(tablePosition > 0)
+                    {
+                        TableJoin join = command.Joins[tablePosition - 1];
+                        auxResult = NestedJoin(result, table, join, null);
+                    }
+                    else
+                    {
+                        var records = repository.loadCollection(table.tableName, command.dbName);
+                        foreach (var record in records)
+                        {
+                            auxResult.Add(createFilteredObject(table.AttributesList, command.dbName, record));
+                        }
+                    }
+                    result = auxResult;
+                }
+            }
+
+
+            return result;
+        }
+
 
         public string ExecuteCommand(Command command)
         {
@@ -1298,7 +1537,8 @@ namespace DBMSServer.Service
                         }
                         else
                         {
-                            List<Dictionary<string, string>> selection = loadFilteredSelection(command).Distinct().ToList();
+                            List<Dictionary<string, string>> selection = IndexNestedLoop(command).Distinct().ToList();
+                            //List<Dictionary<string, string>> selection = loadFilteredSelection(command).Distinct().ToList();
                             return cleanMessage(System.Text.Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(selection)));
                         }
                         break;

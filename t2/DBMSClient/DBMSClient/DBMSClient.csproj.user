@@ -16,6 +16,9 @@
     <Compile Update="QueryCreation\AddConditionScreen.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="QueryCreation\Join.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="QueryCreation\QueryItems.cs">
       <SubType>Form</SubType>
     </Compile>

@@ -382,6 +382,7 @@ namespace DBMSClient
             command.AttributesList = selectScreen.selectedAttributes;
             command.Conditions = selectScreen.conditions;
             command.dbName = selectedTable.dbName;
+            command.joins = selectScreen.joins;
             try
             {
                 byte[] bytes = Extras.sendMessage(System.Text.Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(command)));
@@ -391,9 +392,13 @@ namespace DBMSClient
                 items = JsonConvert.DeserializeObject<IEnumerable<Dictionary<string, string>>>(message).ToList();
                 viewTableList.Columns.Clear();
                 viewTableList.Items.Clear();
-                foreach (var atr in command.AttributesList)
+                if(items.Count <= 0)
                 {
-                    viewTableList.Columns.Add(atr.Name);
+                    throw new Exception("No results");
+                }
+                foreach (var atr in items[0]) 
+                {
+                    viewTableList.Columns.Add(atr.Key);
                 }
 
                 foreach (ColumnHeader column in viewTableList.Columns)

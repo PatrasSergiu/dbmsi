@@ -16,5 +16,8 @@ namespace DBMSServer.Model
 
         public Dictionary<string, string>? Values { get; set; }
 
+        public List<TableJoin>? Joins { get; set; }
+
+
     }
 }
